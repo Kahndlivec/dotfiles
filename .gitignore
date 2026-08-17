@@ -1,0 +1,73 @@
+# ALLOWLIST. Everything is ignored unless explicitly un-ignored below.
+#
+# This is deliberate. A blacklist ("ignore .ssh, ignore .aws, …") only protects
+# you from the leaks you thought of in advance. An allowlist means a new file
+# dropped in this repo is invisible to `git add` until you name it — so the
+# default outcome of forgetting is "not committed", not "pushed to GitHub".
+*
+
+# …but always descend into directories, or the rules below can never match.
+!*/
+
+# Repo scaffolding
+!.gitignore
+!README.md
+!bootstrap.sh
+!Brewfile
+
+# Configs, by extension
+!**/*.json
+!**/*.sh
+!**/*.yaml
+!**/*.yml
+!**/*.toml
+!**/*.md
+!**/*.txt
+!**/*.sublime-keymap
+!**/*.sublime-settings
+!**/*.sublime-build
+!**/*.sublime-snippet
+!**/*.sublime-macro
+!**/*.sublime-project
+!**/*.cpp
+!**/*.h
+
+# Dotfiles that have no extension
+!zsh/.zshrc
+!zsh/.zprofile
+!zsh/.zshenv
+!zsh/.p10k.zsh
+!git/.gitconfig
+!git/.gitignore_global
+!ghostty/config
+!tmux/tmux.conf
+!tmux/.tmux.conf
+!apps/*
+!sublime/payload/sublime-user/.neovintageousrc
+
+# ── Never, under any circumstances ──────────────────────────────────────────
+# These come AFTER the allow rules above, because last match wins.
+.aws/
+.netrc
+.npmrc
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+*.ppk
+.env
+.env.*
+*_history
+*.sublime-workspace
+*.tar.gz
+.DS_Store
+
+# ── SSH: config and PUBLIC keys are safe and wanted ─────────────────────────
+# Listed last so they win over the id_* blocks above — otherwise
+# `id_ed25519.pub`, which is public by definition, would be excluded too.
+!ssh/config
+!ssh/known_hosts
+!ssh/allowed_signers
+!ssh/*.pub

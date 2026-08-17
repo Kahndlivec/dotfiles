@@ -1,0 +1,45 @@
+# ═══════════════════════════════════════════════════════════════════
+#  ~/.config/ghostty/config
+#
+#  tmux owns splits, tabs and sessions now. Ghostty's job is to be a
+#  fast, plain window and stay out of the way — so this file is short
+#  on purpose. Almost every Ghostty default is already correct.
+#
+#  Your HHKB:
+#    ⌃   caps lock, pinky   →  tmux leader (⌃Space) and vim
+#    ⌘   bottom-left thumb  →  macOS only, Ghostty binds nothing new
+#    ⌥   bottom-right only  →  unused, bad reach
+#
+#  Reload after editing:  ⌘⇧,
+# ═══════════════════════════════════════════════════════════════════
+
+
+# Closing a Ghostty window no longer loses anything — your tmux
+# session keeps running in the background and `tmux a` brings it
+# straight back. So the "are you sure?" dialog is just friction now.
+confirm-close-surface = false
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  Optional — uncomment only if you hit the problem it solves.
+# ═══════════════════════════════════════════════════════════════════
+
+# Makes ⌥ send Meta, so <M-x> style mappings work in vim and tmux.
+# The cost: you lose ⌥-typed characters (é, š, €, …) and ⌥ is your
+# only one, stuck bottom-right since the left one became Fn.
+# macos-option-as-alt = true
+
+# If you ever SSH into a machine that doesn't know Ghostty's terminfo
+# and the screen goes garbled, this makes Ghostty pretend to be xterm.
+# Better fix is installing the terminfo on the remote — try this only
+# when you can't.
+# term = xterm-256color
+
+
+# ─── Already built in, no config needed ────────────────────────────
+#   ⌘N        new window          ⌘F   search the scrollback
+#   ⌘K        clear screen        ⌘⇧,  reload this file
+#   ⌘= ⌘- ⌘0  font size
+#
+# ⌘D / ⌘⇧D still make Ghostty splits, but ignore them — use tmux
+# panes instead so your layout survives closing the terminal.

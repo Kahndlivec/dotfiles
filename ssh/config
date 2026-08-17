@@ -1,0 +1,9 @@
+Host khandlab
+    HostName khandlab.tailf80156.ts.net
+    User khand
+
+Host *
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
+
