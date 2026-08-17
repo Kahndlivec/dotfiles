@@ -1,0 +1,248 @@
+[
+    // ═══════════════════════════════════════════════════════════════════════
+    //  HHKB Pro Classic — layout this keymap assumes
+    //  ─────────────────────────────────────────────────────────────────────
+    //    Control key (row 3, far left)   →  ⌃ Control   free — left pinky
+    //    Bottom-left Alt slot            →  ⌘ Command   cheap — under Z X C V
+    //    ◇ left of Space                 →  Fn          free — left thumb
+    //    ◇ right of Space                →  ⌘ Command   cheap — right thumb
+    //    Bottom-right Alt slot           →  ⌥ Option    expensive — corner
+    //
+    //  Rules:
+    //    1. ⌃ carries burst-fired chords (Vim internals, panes).
+    //    2. ⌘ carries one-shot punctuation (build, palette, goto).
+    //    3. ZERO alt+ bindings. ⌥ is a corner key.
+    //    4. Nothing depends on arrows / Home / End / F-keys — those need Fn.
+    //
+    //  Every command name below was checked against package source:
+    //    Origami            SublimeText/Origami        origami.py
+    //    LSP                sublimelsp/LSP             Default.sublime-commands
+    //    FastOlympicCoding  Jatana/FastOlympicCoding   Default (OSX).sublime-keymap
+    // ═══════════════════════════════════════════════════════════════════════
+
+
+    // ── PANES (Origami) ────────────────────────────────────────────────────
+    // Origami defaults to ⌘K + an ARROW; on HHKB that's ⌘K then Fn+h, a
+    // four-finger chord mid-sequence. hjkl instead.
+
+    // Plain ⌃ so the right hand stays completely free.
+    //
+    // This is the single most common remap in real Neovim configs
+    // (`nnoremap <C-h> <C-w>h`), so it's a convention, not a deviation — when
+    // you move to Neovim you add four vimrc lines and the habit transfers.
+    //
+    // What it shadows, and why each is fine:
+    //   i_CTRL-H  backspace in insert — HHKB puts Backspace in row 2, one row
+    //             above Return. That command exists to avoid a corner-key
+    //             reach your keyboard doesn't have.
+    //   i_CTRL-K  digraph entry (⌃K o : -> ö). You will never do this.
+    //   <C-j>     normal-mode cursor down — identical to j, plus a modifier.
+    //   <C-l>     redraw screen — mattered on serial terminals that garbled.
+    //
+    // Vanilla <C-w>h/j/k/l still works too; NeoVintageous implements it
+    // natively. These are the one-keystroke version, live in every mode.
+    { "keys": ["ctrl+h"], "command": "travel_to_pane", "args": {"direction": "left"} },
+    { "keys": ["ctrl+j"], "command": "travel_to_pane", "args": {"direction": "down"} },
+    { "keys": ["ctrl+k"], "command": "travel_to_pane", "args": {"direction": "up"} },
+    { "keys": ["ctrl+l"], "command": "travel_to_pane", "args": {"direction": "right"} },
+
+    // CHANGED: give_focus defaults to FALSE in Origami (origami.py:588
+    // `def run(self, direction, give_focus=False)`), so the old bindings
+    // opened a pane and left you in the old one. Fixed.
+    { "keys": ["super+k", "h"], "command": "create_pane", "args": {"direction": "left",  "give_focus": true} },
+    { "keys": ["super+k", "j"], "command": "create_pane", "args": {"direction": "down",  "give_focus": true} },
+    { "keys": ["super+k", "k"], "command": "create_pane", "args": {"direction": "up",    "give_focus": true} },
+    { "keys": ["super+k", "l"], "command": "create_pane", "args": {"direction": "right", "give_focus": true} },
+    { "keys": ["super+k", "x"], "command": "destroy_pane", "args": {"direction": "self"} },
+    { "keys": ["super+k", "shift+h"], "command": "carry_file_to_pane", "args": {"direction": "left"} },
+    { "keys": ["super+k", "shift+l"], "command": "carry_file_to_pane", "args": {"direction": "right"} },
+    { "keys": ["super+k", "z"], "command": "toggle_zoom_pane", "args": {"fraction": 0.9} },
+
+
+    // ── BUILD / RUN ────────────────────────────────────────────────────────
+    // ⌘B is the default build (debug + sanitizers). These are the variants
+    // you'll hit often enough to deserve one key.
+    //
+    // Note these override three Sublime defaults you won't miss in CP:
+    //   ⌘⇧R  was goto-symbol-in-project  (⌘P covers it)
+    //   ⌘⇧T  was reopen-last-closed-tab  (mild loss — retype ⌘P)
+    //   ⌘⇧S  was Save As                 (you never Save As during a round)
+    //
+    // ⚠ Every "variant" string below MUST appear verbatim as a "name" in
+    //   C++ CP.sublime-build. A mismatch fails silently, and it is the one
+    //   thing in this file I could not verify from here — run cp-doctor2.sh.
+    { "keys": ["super+shift+r"], "command": "build", "args": {"variant": "Debug + in.txt"} },
+    { "keys": ["super+shift+c"], "command": "build", "args": {"variant": "Fast + in.txt"} },
+    { "keys": ["super+shift+t"], "command": "build", "args": {"variant": "Debug, interactive"} },
+    { "keys": ["super+shift+s"], "command": "build", "args": {"variant": "Stress test vs brute.cpp"} },
+
+    // Two variants in your build file had no key at all. Both earn one:
+    //   ⌘⇧K  "Compile only" — -fsyntax-only, no link, no run. The fastest
+    //        possible "did I typo" check mid-problem. (Was delete-line; you
+    //        have dd.)
+    //   ⌘⇧G  "g++ (matches the judge)" — real GCC + _GLIBCXX_DEBUG. Note it
+    //        deliberately omits the -I shim: g++-15 ships a real
+    //        bits/stdc++.h, so pointing it at your libc++ shim would be
+    //        wrong. That asymmetry is correct, not a bug.
+    //        (Was find_prev; you have Vim's N.)
+    { "keys": ["super+shift+k"], "command": "build", "args": {"variant": "Compile only"} },
+    { "keys": ["super+shift+g"], "command": "build", "args": {"variant": "g++ (matches the judge)"} },
+
+    // Compile-error navigation without F4.
+    { "keys": ["super+'"], "command": "next_result" },
+    { "keys": ["super+shift+'"], "command": "prev_result" },
+
+
+    // ── LSP / clangd ───────────────────────────────────────────────────────
+    // ⌃] is Vim's jump-to-tag. Same finger, same meaning — the muscle memory
+    // transfers straight from the editor you're learning.
+    { "keys": ["ctrl+]"], "command": "lsp_symbol_definition" },
+    { "keys": ["super+shift+u"], "command": "lsp_symbol_references" },
+    { "keys": ["super+shift+a"], "command": "lsp_show_diagnostics_panel" },
+
+
+    // ── CppFastOlympicCoding ───────────────────────────────────────────────
+    // CORRECTION to the old comment in this file: FOC's ⌃⌥ defaults are the
+    // LINUX/WINDOWS keymap. On macOS the package already ships:
+    //     ⌃B        run & test        (view_tester / test_manager make_opd)
+    //     ⌃⇧B       run under debugger
+    //     ⌘K ⌘P     toggle test panel (sync_opdebugs)   ← alive, not dead
+    // Nothing below is a "replacement"; it is a second, comfier binding.
+    // ⚠ Because FOC owns ⌃B globally, NeoVintageous's normal-mode ⌃B
+    //   (page up) is dead in .cpp buffers. Use ⌃U / ⌃F or Fn+PgUp instead.
+
+    // ⌘⏎ — RUN & TEST. The main loop key: right pinky Return, left thumb ⌘.
+    // Two entries because FOC dispatches to a different command depending on
+    // whether you're in your source file or already inside the test panel.
+    { "keys": ["super+enter"], "command": "view_tester",
+      "args": {"action": "make_opd", "use_debugger": false},
+      "context": [{"key": "selector", "operator": "not_equal", "operand": "source.TestSyntax", "match_all": true}] },
+    { "keys": ["super+enter"], "command": "test_manager",
+      "args": {"action": "make_opd", "load_session": true, "use_debugger": false},
+      "context": [{"key": "selector", "operator": "equal", "operand": "source.TestSyntax", "match_all": true}] },
+
+    // ⌘⇧⏎ — new test. Only meaningful inside the test panel.
+    { "keys": ["super+shift+enter"], "command": "test_manager", "args": {"action": "new_test"},
+      "context": [
+        {"key": "selector", "operator": "equal", "operand": "source.TestSyntax", "match_all": true},
+        {"key": "setting.edit_mode", "operator": "equal", "operand": false}
+      ] },
+
+    // ⌘⇧D — run under FOC's debugger. (Overrides Sublime's duplicate-line,
+    // which you have as yyp in Vim.)
+    { "keys": ["super+shift+d"], "command": "view_tester",
+      "args": {"action": "make_opd", "use_debugger": true},
+      "context": [{"key": "selector", "operator": "not_equal", "operand": "source.TestSyntax", "match_all": true}] },
+
+    // ⌘K p — toggle the test panel (same as FOC's own ⌘K ⌘P).
+    { "keys": ["super+k", "p"], "command": "view_tester", "args": {"action": "sync_opdebugs"} },
+
+    // NEW — these three ship with NO keybinding at all on any platform;
+    // they were only reachable from the command palette.
+    // ⌘K s — FOC's built-in stress tester (needs <file>_brute.cpp + gen).
+    { "keys": ["super+k", "s"], "command": "stress_manager", "args": {"action": "make_stress"} },
+    { "keys": ["super+k", "shift+s"], "command": "stress_manager", "args": {"action": "stop_stress"} },
+    // ⌘K f — quick-panel over your algorithms_base library, with live preview.
+    { "keys": ["super+k", "f"], "command": "olympic_funcs", "args": {"action": "show_funcs"} },
+
+    // ⌘K t — insert the cp template as a plain Sublime snippet. Belt and
+    // braces: `cp`+Tab goes through FOC's engine, this does not.
+    { "keys": ["super+k", "t"], "command": "insert_snippet",
+      "args": {"name": "Packages/User/cp-template.sublime-snippet"} },
+
+    // ── cp + Tab, claimed from User ────────────────────────────────────────
+    // Diagnosis: ⌘K f works, which proves algorithms_base is read and
+    // cp.cpp is found — `show_funcs` does listdir() on that same path. So the
+    // template engine is fine and Tab simply wasn't reaching it.
+    //
+    // Upstream FOC binds this itself, but you're on the CppFastOlympicCoding
+    // FORK, whose keymap may differ. Rather than guess, bind it here:
+    // Packages/User loads LAST, after every package, so this wins outright —
+    // over Default's commit_completion, over NeoVintageous, over the fork,
+    // whatever the fork does or doesn't ship.
+    //
+    // Three deliberate differences from upstream's version:
+    //   · command_mode false — insert mode only, so Vim's normal-mode <Tab>
+    //     (jump forward in the jumplist) still works.
+    //   · ^\s*(\w+)$ instead of ^(\w+)$ — tolerates auto-indent. Upstream's
+    //     anchored regex fails the moment there's a leading space.
+    //   · no meta.block/meta.function exclusion — upstream refuses to expand
+    //     inside a function body, which blocks the actually-useful case:
+    //     typing `dijkstra` inside solve() and hitting Tab.
+    //
+    // If the word isn't a file in algorithms_base, olympic_funcs.py falls
+    // through to insert_best_completion — i.e. exactly Sublime's normal Tab.
+    // Nothing is lost.
+    { "keys": ["tab"], "command": "olympic_funcs", "args": {"action": "insert_template"},
+      "context": [
+        {"key": "setting.command_mode", "operator": "equal", "operand": false},
+        {"key": "selector", "operator": "equal", "operand": "source.c++", "match_all": true},
+        {"key": "preceding_text", "operator": "regex_contains", "operand": "^\\s*(\\w+)$", "match_all": true}
+      ] },
+
+    // …and a belt for that brace. Listed AFTER the rule above, so for the
+    // single word `cp` this one wins; every other word still goes through
+    // FOC's engine, so `dijkstra`+Tab keeps working off algorithms_base.
+    //
+    // Why a macro: this path touches no plugin at all. delete_word removes
+    // the trigger, insert_snippet inserts the file. Both are core Sublime
+    // TextCommands and a .sublime-macro is the supported way to sequence
+    // them. (ST4's `chain` command is a WindowCommand and mis-dispatches
+    // TextCommands, so it is the wrong tool here.)
+    //
+    // The \bcp$ guard means this can NEVER interfere with an ordinary Tab —
+    // it fires only when the text immediately before the caret is the bare
+    // word cp.
+    { "keys": ["tab"], "command": "run_macro_file",
+      "args": {"file": "Packages/User/cp-expand.sublime-macro"},
+      "context": [
+        {"key": "setting.command_mode", "operator": "equal", "operand": false},
+        {"key": "selector", "operator": "equal", "operand": "source.c++", "match_all": true},
+        {"key": "preceding_text", "operator": "regex_contains", "operand": "\\bcp$", "match_all": true}
+      ] },
+
+    // Inside the test panel FOC already owns (verified, the old comment here
+    // had three of the five wrong):
+    //     ⏎        insert line          ⌃⏎   new test / toggle new test
+    //     ⌘V       paste input          ⌃C   kill running process
+    //     ⌃D       delete tests         ⌃⌘↑ / ⌃⌘↓  swap tests
+    //     ⌃⌘⇧H     toggle phantoms
+    // All are scoped to source.TestSyntax, so none touch Vim keys in .cpp.
+
+
+    // ── SIDEBAR / TABS ─────────────────────────────────────────────────────
+    { "keys": ["super+k", "b"], "command": "toggle_side_bar" },
+    { "keys": ["super+k", "r"], "command": "reveal_in_side_bar" },
+    { "keys": ["super+shift+["], "command": "prev_view" },
+    { "keys": ["super+shift+]"], "command": "next_view" },
+
+
+    // ── LINE START / END IN INSERT MODE ────────────────────────────────────
+    // Insert-mode only, so NeoVintageous keeps normal-mode ctrl+a (increment)
+    // and ctrl+e (scroll). Shadows Vim's niche i_CTRL-A / i_CTRL-E; readline
+    // muscle memory is worth more. Delete these two if you disagree.
+    { "keys": ["ctrl+a"], "command": "move_to", "args": {"to": "bol", "extend": false},
+      "context": [{"key": "setting.command_mode", "operator": "equal", "operand": false}] },
+    { "keys": ["ctrl+e"], "command": "move_to", "args": {"to": "eol", "extend": false},
+      "context": [{"key": "setting.command_mode", "operator": "equal", "operand": false}] },
+
+    // No ctrl+d binding on purpose — it would shadow Vim's i_CTRL-D (unindent)
+    // and FOC's delete-tests. Forward-delete is Fn+Backspace.
+
+
+    // ── PANEL / POPUP HYGIENE ──────────────────────────────────────────────
+    // REMOVED: the old ["enter"] override. With auto_complete_commit_on_tab
+    // true, Sublime's default Enter already inserts a newline instead of
+    // committing — the override was a no-op that only risked shadowing FOC's
+    // Enter binding in the test panel.
+
+    // Esc closes the build output panel without reaching for the mouse.
+    { "keys": ["escape"], "command": "hide_panel", "args": {"cancel": true},
+      "context": [{"key": "panel_visible", "operator": "equal", "operand": true}] },
+
+    // Listed last so it wins over the panel rule when a popup is open.
+    // Note this closes the POPUP only — a second Esc leaves insert mode.
+    // That's the correct behaviour (same as every editor), not a bug.
+    { "keys": ["escape"], "command": "hide_auto_complete",
+      "context": [{"key": "auto_complete_visible", "operator": "equal", "operand": true}] }
+]

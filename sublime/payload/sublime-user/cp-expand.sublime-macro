@@ -1,0 +1,5 @@
+[
+    {"command": "hide_auto_complete"},
+    {"command": "delete_word", "args": {"forward": false, "sub_words": false}},
+    {"command": "insert_snippet", "args": {"name": "Packages/User/cp-template.sublime-snippet"}}
+]

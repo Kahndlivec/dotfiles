@@ -1,0 +1,19 @@
+# cp-portable — exported 2026-08-17 17:45
+# macOS 26.5.2; username deliberately not recorded
+# sha256(16)  bytes  path
+9f7b4a03319f9a90  2006  payload/clangd/config.yaml
+949b7f882b079133  740  payload/cpdir/algo/cp.cpp
+988b45b9037a6589  3446  payload/cpdir/cp.sublime-project
+369b8cf21adb6636  2317  payload/dotcp/.cp/include/bits/stdc++.h
+f2c9b7b6dc60c12c  3812  payload/dotcp/.cp/judge.sh
+bc57741e57d86d59  1362  payload/dotcp/.cp/run-term.sh
+0f186665ce1045f3  1879  payload/dotcp/.cp/stress.sh
+8620b3bb36a4a77e  8128  payload/sublime-user/.neovintageousrc
+6e114064de4bd449  2317  payload/sublime-user/C++ CP.sublime-build
+7b1b4048a4a1fec7  220  payload/sublime-user/cp-expand.sublime-macro
+97c03fc53b87aeec  939  payload/sublime-user/cp-template.sublime-snippet
+1903fffdf1219280  16330  payload/sublime-user/Default (OSX).sublime-keymap
+c92337a45435e984  5612  payload/sublime-user/FastOlympicCoding.sublime-settings
+a676fb607ad57535  3032  payload/sublime-user/LSP.sublime-settings
+b3db26f845ac1f11  299  payload/sublime-user/Package Control.sublime-settings
+9c459f2f4e0d0a69  5523  payload/sublime-user/Preferences.sublime-settings

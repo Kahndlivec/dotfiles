@@ -1,0 +1,123 @@
+{
+    // ═══════════════════════════════════════════════════════════════════════
+    //  FINAL — your settings, with 9 changes. Every change is marked [CHANGED]
+    //  or [ADDED] with the reason. Everything unmarked is yours, untouched.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // Vintage MUST stay ignored — NeoVintageous replaces it.
+    "ignored_packages":
+    [
+        "Vintage"
+    ],
+
+    // ── Appearance ──────────────────────────────────────────────────────────
+    "color_scheme": "Monokai Pro.sublime-color-scheme",
+    "theme": "Monokai Pro.sublime-theme",
+    "font_face": "JetBrainsMono Nerd Font Mono",
+    "font_size": 14,
+    "line_padding_top": 2,
+    "line_padding_bottom": 2,
+    "highlight_line": true,
+    "indent_guide_options": ["draw_normal", "draw_active"],
+    "draw_white_space": ["selection", "trailing"],
+    "match_brackets_content": true,
+    "rulers": [100],
+    "show_tab_close_buttons": false,
+    "show_encoding": false,
+    "show_line_endings": false,
+    "show_definitions": false,
+    "scroll_past_end": 0.5,
+    "scroll_speed": 2.0,
+    "hardware_acceleration": "metal",
+    "mini_diff": true,
+    "show_git_status": true,
+
+    // [CHANGED] "phase" -> "solid".
+    // NeoVintageous shows a BLOCK caret in normal mode and a thin bar in
+    // insert. That is your only mode indicator. "phase" blinks by fading,
+    // which smears the block/bar distinction exactly when you need it.
+    "caret_style": "solid",
+
+    // [ADDED] The single biggest Vim accelerator. 5j / 12k become one glance
+    // instead of counting lines. Current line still shows its real number.
+    "line_numbers": true,
+    "relative_line_numbers": true,
+
+    // [ADDED] Cosmetic, both free.
+    "highlight_modified_tabs": true,
+    "bold_folder_labels": true,
+
+    // ── Editing ─────────────────────────────────────────────────────────────
+    "tab_size": 4,
+    "translate_tabs_to_spaces": true,
+    "word_wrap": false,
+    "auto_indent": true,
+    "smart_indent": true,
+    "copy_with_empty_selection": false,
+    "drag_text": false,
+    "find_selected_text": true,
+
+    // [ADDED] Stops Sublime from guessing indentation off a pasted snippet
+    // and silently switching your file to tabs. Bites people who paste
+    // library code mid-contest.
+    "detect_indentation": false,
+
+    // ── Completion ──────────────────────────────────────────────────────────
+    "auto_complete": true,
+    "auto_complete_commit_on_tab": true,
+
+    // [CHANGED] 0 -> 50. Fine at 0 with only Sublime's word index; once clangd
+    // is feeding real completions, 0 makes the popup thrash on every keystroke.
+    // 50ms is imperceptible and stops the flicker.
+    "auto_complete_delay": 50,
+
+    // [ADDED] false. With fields on, completing a function inserts placeholder
+    // arguments you have to Tab through — fine when browsing an API, actively
+    // bad when you already know the signature and are typing at speed.
+    // Matches clangd's --function-arg-placeholders=0 below.
+    "auto_complete_with_fields": false,
+
+    // ── Files & saving ──────────────────────────────────────────────────────
+    "ensure_newline_at_eof_on_save": true,
+    "trim_trailing_white_space_on_save": "all",
+    "save_on_focus_lost": true,
+    "default_line_ending": "unix",
+    "atomic_save": false,
+    "hot_exit": "always",
+    "remember_open_files": true,
+    "open_files_in_new_window": "never",
+
+    // [ADDED] Keeps the window alive when you close the last tab.
+    "close_windows_when_empty": false,
+
+    // ── Indexing & noise reduction ──────────────────────────────────────────
+    "index_files": true,
+    "folder_exclude_patterns":
+    [
+        ".git", "node_modules", "__pycache__", ".venv", "venv",
+        ".next", "dist", "build", ".turbo", ".muuuuypy_cache"
+    ],
+
+    // [ADDED] CP-specific. Compiled binaries land next to your .cpp files, and
+    // without this your sidebar and ⌘P results fill with them within a week.
+    // "sol", "brute", "gen" are the stress-test binaries; "*_dbg" is the
+    // sanitizer build.
+    "file_exclude_patterns":
+    [
+        "*.o", "*.out", "*.exe", "*_dbg", "*.gch", "*.pch",
+        "sol", "brute", "gen", "*.dSYM"
+    ],
+
+    "binary_file_patterns":
+    [
+        "*.jpg", "*.png", "*.gif", "*.webp", "*.pdf", "*.zip",
+        "*.woff", "*.woff2", "*.ico", "*.lock"
+    ],
+    "update_check": false,
+
+    // [ADDED] Show the build panel immediately so ⌘' can jump to the first
+    // compile error without you reaching for the mouse.
+    "show_panel_on_build": true,
+    "neovintageous_build_version": 13200,
+    "build_system": "Packages/User/C++ CP.sublime-build",
+}

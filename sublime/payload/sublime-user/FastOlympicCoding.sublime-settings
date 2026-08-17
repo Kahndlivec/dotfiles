@@ -1,0 +1,104 @@
+{
+    // ═══════════════════════════════════════════════════════════════════════
+    //  THIS FILE GOES IN  Packages/User/FastOlympicCoding.sublime-settings
+    //  — no platform suffix, no "Cpp" prefix.
+    //
+    //  Why the old advice was wrong: settings.py:19 does
+    //      settings_file = 'FastOlympicCoding.sublime-settings'
+    //      sublime.load_settings(settings_file)
+    //  Sublime resolves that across every package in load order, User LAST.
+    //  The package's own "FastOlympicCoding (OSX).sublime-settings" is the
+    //  DEFAULTS layer — editing it in place works until Package Control
+    //  updates the package and silently reverts you. Overrides belong here.
+    //
+    //  Open it any time: ⌘⇧P → "FastOlympicCoding: Open Settings"
+    //  (defaults left, your overrides right — it creates this file for you).
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // ── The cp + Tab template ──────────────────────────────────────────────
+    // FOC binds Tab itself in .cpp files (its Default (OSX).sublime-keymap,
+    // first entry) → olympic_funcs {"action": "insert_template"}. That code
+    // path (olympic_funcs.py:38) does:
+    //
+    //     word = <word under cursor>
+    //     if algorithms_base is set AND <algorithms_base>/<word>.cpp exists:
+    //         replace the word with that file's contents
+    //     else:
+    //         run insert_best_completion        ← what you were hitting
+    //
+    // algorithms_base ships as `null`, so Tab always fell into the else
+    // branch and did a fuzzy autocomplete instead. It was never the snippet
+    // losing a race with clangd — Sublime's snippet engine was never reached,
+    // because FOC's package keymap outranks Packages/Default.
+    //
+    // Point this at a folder; every <name>.cpp inside becomes <name>+Tab.
+    // Relative paths resolve against the package dir, so use an absolute one.
+    "algorithms_base": "__CP_HOME__/Documents/cp/algo",
+
+    // Where "FastOlympicCoding: Setup Contest" drops folders.
+    "contests_base": "__CP_HOME__/Documents/cp",
+
+
+    // ── Compiler ───────────────────────────────────────────────────────────
+    // This is the second of the THREE places your flags live. It must agree
+    // with C++ CP.sublime-build and ~/Library/Preferences/clangd/config.yaml.
+    //
+    // ⚠ CHANGED FROM c++17 TO c++20 after reading your doctor output:
+    //   your ~/Library/Preferences/clangd/config.yaml is already on
+    //   -std=c++20 -DLOCAL. Three places, one standard. If you'd rather go
+    //   the other way, change clangd instead — but don't leave them split.
+    //
+    // Three fixes vs the shipped defaults:
+    //   1. -std=gnu++11 → -std=c++20
+    //   2. the bits/stdc++.h shim include was missing entirely. Without it
+    //      Apple clang cannot find <bits/stdc++.h>, so EVERY FOC run and
+    //      every FOC lint pass failed on line 1 while ⌘B worked fine.
+    //      That is the "FOC doesn't work" symptom.
+    //
+    // Placeholders FOC substitutes: {source_file} {source_file_dir}
+    //                               {file_name} {file} {args}
+    "run_settings": [
+        {
+            "name": "C++",
+            "extensions": ["cpp", "cc", "cxx"],
+
+            // -DLOCAL matters: your template guards dbg() behind #ifdef LOCAL
+            // and clangd already passes -DLOCAL. Without it here, clangd shows
+            // you a live dbg() that compiles to `42` when FOC actually runs it.
+            "compile_cmd": "g++ -std=c++20 -O1 -g -DLOCAL -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all -Wall -Wextra -Wshadow -I__CP_HOME__/.cp/include '{source_file}' -o '{file_name}'",
+
+            "run_cmd": "./\"{file_name}\" {args} -debug",
+
+            // -fsyntax-only: lint should not link. Was silently doing a full
+            // compile+link on every keystroke pause.
+            "lint_compile_cmd": "g++ -std=c++20 -fsyntax-only -DLOCAL -Wall -Wextra -Wshadow -I__CP_HOME__/.cp/include -I '{source_file_dir}' '{source_file}'"
+        },
+
+        {
+            "name": "Python",
+            "extensions": ["py"],
+            "compile_cmd": null,
+            "run_cmd": "python3 '{source_file}'"
+        }
+    ],
+
+
+    // ── Behaviour ──────────────────────────────────────────────────────────
+    "lint_enabled": true,
+    "lint_error_region_scope": "invalid.illegal",
+    "lint_warning_region_scope": "constant",
+
+    // Seconds before FOC calls a stress-test iteration a TLE.
+    "stress_time_limit_seconds": 2,
+
+    // FOC's own C++ class-name expander (vector→vector<>, pair→pair<,>).
+    // Set false if it fights clangd's completions — it registers an
+    // on_modified hook that force-reopens the popup (olympic_funcs.py:150).
+    "cpp_complete_enabled": false,
+
+    // Don't yank the sidebar away every time you run.
+    "close_sidebar": false,
+
+    // Keep the ":tests" files next to the source.
+    "tests_relative_dir": ""
+}

@@ -1,0 +1,48 @@
+# ═════════════════════════════════════════════════════════════════════════
+#  macOS:  ~/Library/Preferences/clangd/config.yaml     <-- clangd reads THIS
+#  Linux:  ~/.config/clangd/config.yaml
+#
+#  clangd uses the OS user-config directory, which on macOS is
+#  Library/Preferences. Putting it in ~/.config on a Mac silently does nothing.
+#
+#  Without this, clangd assumes C++14-ish defaults and red-squiggles perfectly
+#  valid C++20. That is the #1 reason people say "the LSP setup doesn't work".
+#
+#  NOTE: clangd does NOT expand $HOME. install.sh rewrites the -I path below
+#  to your real home directory. If you're pasting by hand, replace
+#  __CP_HOME__ with your actual username.
+# ═════════════════════════════════════════════════════════════════════════
+
+CompileFlags:
+  Add:
+    - -std=c++20
+    # Must match the build system, or clangd squiggles <bits/stdc++.h>
+    # (it doesn't exist on macOS/libc++ — you installed a shim).
+    - -I__CP_HOME__/.cp/include
+    - -Wall
+    - -Wextra
+    - -Wshadow
+    # Your template guards dbg() behind #ifdef LOCAL. Without this, clangd
+    # greys the whole block out as dead code and gives you no completion in it.
+    - -DLOCAL
+  Remove:
+    - -W*conversion
+
+Diagnostics:
+  ClangTidy:
+    Add:
+      - bugprone-*
+      - performance-*
+    Remove:
+      # These fire constantly on normal contest code and are pure noise.
+      - bugprone-easily-swappable-parameters
+      - bugprone-narrowing-conversions
+      - bugprone-implicit-widening-of-multiplication-result
+      - performance-avoid-endl
+  # A single .cpp with no compile_commands.json triggers this endlessly.
+  Suppress:
+    - drv_unknown_argument
+  UnusedIncludes: None
+
+InlayHints:
+  Enabled: false
