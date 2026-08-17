@@ -818,14 +818,28 @@ echo
 # The one real failure mode of an allowlist: you collect a file, the rules
 # don't name its extension, and it is silently never committed. Diff the
 # filesystem against the index and say so out loud.
-# Compare against TRACKED files (git ls-files), not staged changes. On a repo
-# where nothing changed, `git diff --cached` is empty, and comparing against
-# that reports every committed file as "will not be saved" — which is nonsense.
-UNTRACKED=$(comm -23 \
-  <(find . -type f -not -path './.git/*' | sed 's|^\./||' | LC_ALL=C sort) \
-  <( { git ls-files; git diff --cached --name-only; } | LC_ALL=C sort -u))
+# Ask GIT what it is skipping, rather than diffing `find` against the index.
+# Two earlier attempts at this were both wrong — the first compared against
+# staged changes (so a clean repo reported every file as unsaved), the second
+# compared against `git ls-files` via `comm` and still misreported files that
+# were demonstrably committed. These two flags are git's own answer and cannot
+# disagree with git:
+#   --others --exclude-standard            untracked AND not ignored  → a real problem
+#   --others --ignored --exclude-standard  untracked because ignored  → informational
+UNTRACKED=$(git ls-files --others --exclude-standard)
+IGNORED=$(git ls-files --others --ignored --exclude-standard)
+if [ -n "$IGNORED" ]; then
+  N_IGN=$(printf '%s\n' "$IGNORED" | grep -c .)
+  sk "$N_IGN file(s) deliberately ignored:"
+  printf '%s\n' "$IGNORED" | while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    RULE=$(git check-ignore -v -- "$f" 2>/dev/null | head -1)
+    printf '      %-50s  ← %s\n' "$f" "${RULE%%	*}"
+  done
+fi
+
 if [ -n "$UNTRACKED" ]; then
-  no "these files are in the repo folder but git will NOT save them:"
+  no "these files are NOT ignored and NOT tracked — they will be lost:"
   # Print the rule responsible for each one. check-ignore -v names the file and
   # line number, which also catches a GLOBAL gitignore (core.excludesFile) —
   # the cause that is otherwise invisible and infuriating.
