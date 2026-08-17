@@ -36,6 +36,7 @@
 !**/*.conf
 !**/*.cfg
 !**/*.ini
+!**/*.plist
 
 # Dotfiles that have no extension
 !zsh/.zshrc
@@ -56,6 +57,12 @@
 !nvim/**
 !sublime/payload/sublime-user/.neovintageousrc
 
+# Folders that are yours to fill: screenshots, keyboard layout exports,
+# cheatsheets. Allowed wholesale because their contents are unpredictable.
+!hhkb/*
+!docs/*
+!karabiner/assets/**
+
 # ── Never, under any circumstances ──────────────────────────────────────────
 # These come AFTER the allow rules above, because last match wins.
 .aws/
@@ -74,6 +81,13 @@ id_dsa*
 *.sublime-workspace
 *.tar.gz
 .DS_Store
+
+# Karabiner writes a dated snapshot every time you touch its settings. Git is
+# already your history — these are duplicate history, and they pile up.
+karabiner/automatic_backups/
+# A file literally named "~" turns up in Karabiner's assets dir. It is junk
+# from a mis-typed path, not a config.
+**/~
 
 # ── SSH: config and PUBLIC keys are safe and wanted ─────────────────────────
 # Listed last so they win over the id_* blocks above — otherwise

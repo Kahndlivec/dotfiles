@@ -397,6 +397,12 @@ else
   sk "macos/defaults.sh — already exists, left alone"
 fi
 
+# App preferences (Rectangle, AltTab, LinearMouse, Raycast) are handled by
+# macos-prefs.sh, on purpose — they change rarely and restoring them needs the
+# apps quit, which does not belong in a routine sync.
+#     bash macos-prefs.sh export
+# The .gitignore below allows *.plist so its output commits normally.
+
 # ── .gitignore: allowlist, not blacklist ─────────────────────────────────────
 hdr "8  .gitignore (allowlist)"
 cat > "$D/.gitignore" <<'GI_EOF'
@@ -438,6 +444,7 @@ cat > "$D/.gitignore" <<'GI_EOF'
 !**/*.conf
 !**/*.cfg
 !**/*.ini
+!**/*.plist
 
 # Dotfiles that have no extension
 !zsh/.zshrc
@@ -458,6 +465,12 @@ cat > "$D/.gitignore" <<'GI_EOF'
 !nvim/**
 !sublime/payload/sublime-user/.neovintageousrc
 
+# Folders that are yours to fill: screenshots, keyboard layout exports,
+# cheatsheets. Allowed wholesale because their contents are unpredictable.
+!hhkb/*
+!docs/*
+!karabiner/assets/**
+
 # ── Never, under any circumstances ──────────────────────────────────────────
 # These come AFTER the allow rules above, because last match wins.
 .aws/
@@ -476,6 +489,13 @@ id_dsa*
 *.sublime-workspace
 *.tar.gz
 .DS_Store
+
+# Karabiner writes a dated snapshot every time you touch its settings. Git is
+# already your history — these are duplicate history, and they pile up.
+karabiner/automatic_backups/
+# A file literally named "~" turns up in Karabiner's assets dir. It is junk
+# from a mis-typed path, not a config.
+**/~
 
 # ── SSH: config and PUBLIC keys are safe and wanted ─────────────────────────
 # Listed last so they win over the id_* blocks above — otherwise
@@ -621,6 +641,15 @@ fi
 
 hdr "7  macOS defaults"
 [ -f "$D/macos/defaults.sh" ] && bash "$D/macos/defaults.sh" || sk "no defaults.sh"
+
+hdr "7b  App preferences"
+if [ -d "$D/macos/prefs" ] && ls "$D/macos/prefs"/*.plist >/dev/null 2>&1; then
+  sk "$(ls -1 "$D/macos/prefs"/*.plist | wc -l | tr -d ' ') app preference file(s) in the repo"
+  echo "      Restore separately, after quitting those apps:"
+  echo "          bash macos-prefs.sh import"
+else
+  sk "no app preferences in repo"
+fi
 
 hdr "DONE"
 echo "  Overwritten files were backed up to: $B"
@@ -778,9 +807,12 @@ echo
 # The one real failure mode of an allowlist: you collect a file, the rules
 # don't name its extension, and it is silently never committed. Diff the
 # filesystem against the index and say so out loud.
+# Compare against TRACKED files (git ls-files), not staged changes. On a repo
+# where nothing changed, `git diff --cached` is empty, and comparing against
+# that reports every committed file as "will not be saved" — which is nonsense.
 UNTRACKED=$(comm -23 \
   <(find . -type f -not -path './.git/*' | sed 's|^\./||' | LC_ALL=C sort) \
-  <(git diff --cached --name-only | LC_ALL=C sort))
+  <( { git ls-files; git diff --cached --name-only; } | LC_ALL=C sort -u))
 if [ -n "$UNTRACKED" ]; then
   no "these files are in the repo folder but git will NOT save them:"
   printf '%s\n' "$UNTRACKED" | sed 's/^/      /'

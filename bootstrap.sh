@@ -130,6 +130,15 @@ fi
 hdr "7  macOS defaults"
 [ -f "$D/macos/defaults.sh" ] && bash "$D/macos/defaults.sh" || sk "no defaults.sh"
 
+hdr "7b  App preferences"
+if [ -d "$D/macos/prefs" ] && ls "$D/macos/prefs"/*.plist >/dev/null 2>&1; then
+  sk "$(ls -1 "$D/macos/prefs"/*.plist | wc -l | tr -d ' ') app preference file(s) in the repo"
+  echo "      Restore separately, after quitting those apps:"
+  echo "          bash macos-prefs.sh import"
+else
+  sk "no app preferences in repo"
+fi
+
 hdr "DONE"
 echo "  Overwritten files were backed up to: $B"
 echo "  Restart your terminal, then log out and back in for key repeat."
