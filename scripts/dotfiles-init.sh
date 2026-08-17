@@ -803,7 +803,13 @@ SCAN=$?
 hdr "12  What would be committed"
 cd "$D" || exit 1
 [ -d .git ] || { git init -q && echo "  git init"; }
-git add -A 2>/dev/null
+# Do NOT suppress errors here. A failing `git add` is exactly the thing that
+# leaves a file uncommitted for weeks with no explanation.
+ADD_ERR=$(git add -A 2>&1); ADD_RC=$?
+if [ -n "$ADD_ERR" ] || [ "$ADD_RC" != 0 ]; then
+  no "git add -A said (exit $ADD_RC):"
+  printf '%s\n' "$ADD_ERR" | head -10 | sed 's/^/          /'
+fi
 echo "  files git will track:"
 git diff --cached --name-only | sed 's/^/      /'
 N=$(git diff --cached --name-only | wc -l | tr -d ' ')
@@ -823,15 +829,26 @@ if [ -n "$UNTRACKED" ]; then
   # Print the rule responsible for each one. check-ignore -v names the file and
   # line number, which also catches a GLOBAL gitignore (core.excludesFile) —
   # the cause that is otherwise invisible and infuriating.
+  RESCUED=0
   while IFS= read -r f; do
     [ -z "$f" ] && continue
     RULE=$(git check-ignore -v -- "$f" 2>/dev/null | head -1)
     if [ -n "$RULE" ]; then
       printf '      %-52s  ← %s\n' "$f" "${RULE%%	*}"
     else
-      printf '      %-52s  ← no rule matches; try: git add -f "%s"\n' "$f" "$f"
+      # No rule ignores it, yet it is unstaged. That is not a .gitignore
+      # problem — `git add -A` failed on it. Force it in and say what happened.
+      ERR=$(git add -f -- "$f" 2>&1)
+      if git diff --cached --name-only | grep -qxF -- "$f"; then
+        printf '      %-52s  ← no ignore rule; force-added ✓\n' "$f"
+        RESCUED=$((RESCUED+1))
+      else
+        printf '      %-52s  ← no ignore rule AND add -f failed:\n' "$f"
+        printf '%s\n' "$ERR" | head -3 | sed 's/^/            /'
+      fi
     fi
   done <<< "$UNTRACKED"
+  [ "$RESCUED" -gt 0 ] && ok "force-added $RESCUED file(s) that no rule was excluding"
   say ""
   say "The '← ' column is the file:line of the rule. If it names a path outside"
   say "this repo, it is your GLOBAL gitignore — check: git config --get core.excludesFile"
