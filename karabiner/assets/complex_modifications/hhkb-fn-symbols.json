@@ -1,0 +1,20 @@
+{
+  "title": "HHKB Fn symbols",
+  "rules": [{
+    "description": "Fn layer tokens to brackets",
+    "manipulators": [
+      { "type": "basic", "from": { "key_code": "keypad_slash",    "modifiers": { "optional": ["any"] } },
+        "to": [{ "key_code": "open_bracket",  "modifiers": ["left_shift"] }] },
+      { "type": "basic", "from": { "key_code": "keypad_asterisk", "modifiers": { "optional": ["any"] } },
+        "to": [{ "key_code": "close_bracket", "modifiers": ["left_shift"] }] },
+      { "type": "basic", "from": { "key_code": "keypad_hyphen",   "modifiers": { "optional": ["any"] } },
+        "to": [{ "key_code": "9", "modifiers": ["left_shift"] }] },
+      { "type": "basic", "from": { "key_code": "keypad_plus",     "modifiers": { "optional": ["any"] } },
+        "to": [{ "key_code": "0", "modifiers": ["left_shift"] }] },
+      { "type": "basic", "from": { "key_code": "keypad_num_lock", "modifiers": { "optional": ["any"] } },
+        "to": [{ "key_code": "comma",  "modifiers": ["left_shift"] }] },
+      { "type": "basic", "from": { "key_code": "print_screen",    "modifiers": { "optional": ["any"] } },
+        "to": [{ "key_code": "period", "modifiers": ["left_shift"] }] }
+    ]
+  }]
+}

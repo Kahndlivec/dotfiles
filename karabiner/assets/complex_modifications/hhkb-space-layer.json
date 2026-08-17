@@ -1,0 +1,39 @@
+{
+  "title": "HHKB space layer",
+  "rules": [
+    {
+      "description": "1. Space: layer when held, space when tapped",
+      "manipulators": [{
+        "type": "basic",
+        "from": { "key_code": "spacebar", "modifiers": { "optional": ["any"] } },
+        "to": [{ "set_variable": { "name": "spc", "value": 1 } }],
+        "to_after_key_up": [{ "set_variable": { "name": "spc", "value": 0 } }],
+        "to_if_alone": [{ "key_code": "spacebar" }],
+        "parameters": { "basic.to_if_alone_timeout_milliseconds": 250 }
+      }]
+    },
+    {
+      "description": "2. Space + ERASDF = brackets",
+      "manipulators": [
+        { "type": "basic", "conditions": [{ "type": "variable_if", "name": "spc", "value": 1 }],
+          "from": { "key_code": "e", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "open_bracket",  "modifiers": ["left_shift"] }] },
+        { "type": "basic", "conditions": [{ "type": "variable_if", "name": "spc", "value": 1 }],
+          "from": { "key_code": "r", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "close_bracket", "modifiers": ["left_shift"] }] },
+        { "type": "basic", "conditions": [{ "type": "variable_if", "name": "spc", "value": 1 }],
+          "from": { "key_code": "d", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "9", "modifiers": ["left_shift"] }] },
+        { "type": "basic", "conditions": [{ "type": "variable_if", "name": "spc", "value": 1 }],
+          "from": { "key_code": "f", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "0", "modifiers": ["left_shift"] }] },
+        { "type": "basic", "conditions": [{ "type": "variable_if", "name": "spc", "value": 1 }],
+          "from": { "key_code": "a", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "comma",  "modifiers": ["left_shift"] }] },
+        { "type": "basic", "conditions": [{ "type": "variable_if", "name": "spc", "value": 1 }],
+          "from": { "key_code": "s", "modifiers": { "optional": ["any"] } },
+          "to": [{ "key_code": "period", "modifiers": ["left_shift"] }] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+# ~/.clang-format — formatting for competitive programming.
+#
+# Install:  cp .clang-format ~/.clang-format
+# Use:      ⌘⇧P → "LSP: Format Document"   (clangd reads this file)
+#
+# clangd searches upward from the file being edited and stops at the first
+# .clang-format it finds, so one in $HOME applies everywhere unless a contest
+# folder overrides it.
+#
+# Tuned for contest code, which is not normal code: it is short-lived, read
+# only by you, and written under time pressure. So this favours density over
+# the ceremony that makes sense in a shared codebase.
+
+BasedOnStyle: LLVM
+
+# Matches tab_size 4 in cp.sublime-project. Keep them the same or Sublime and
+# clangd will disagree every time you format.
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# LLVM defaults to 80, which wraps CP one-liners into unreadable ladders.
+# 100 matches the ruler in cp.sublime-project.
+ColumnLimit: 100
+
+# Density. These four are the whole point:
+#   for (int i = 0; i < n; i++) sum += a[i];
+# stays on one line instead of becoming four.
+AllowShortBlocksOnASingleLine: Always
+AllowShortLoopsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortFunctionsOnASingleLine: All
+
+# K&R braces — same line for control flow, new line for nothing.
+BreakBeforeBraces: Attach
+
+# `int* p` not `int *p`. Consistent with `vector<int>& v` in signatures.
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# One include, and it is <bits/stdc++.h>. Sorting is noise, and reordering
+# includes has broken more builds than it has fixed.
+SortIncludes: Never
+
+# Both OFF, and this was tested rather than guessed. With
+# AlignConsecutiveAssignments: Consecutive, clang-format treats
+#     using ll = long long;
+#     using pii = pair<int,int>;
+#     template <class T> using vec = vector<T>;
+# as one group and pads the first two out to the template line's `=`, giving a
+# 25-space gap. Worse than no alignment. Off means one space, always.
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: false
+
+# Template<...> on the same line. `template <class T> using vec = vector<T>;`
+# should not become two lines.
+AlwaysBreakTemplateDeclarations: No
+
+# Keep argument lists packed rather than one-per-line.
+BinPackArguments: true
+BinPackParameters: true
+
+# Namespace indentation off — CP code lives at file scope.
+NamespaceIndentation: None
+
+# Preserve your own blank lines; don't collapse the gaps you put between
+# solve() and main().
+MaxEmptyLinesToKeep: 2
+
+# Case labels indented under switch, which reads better in DP transitions.
+IndentCaseLabels: true
+
+# Leave trailing comments where you put them.
+ReflowComments: false
