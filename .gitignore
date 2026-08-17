@@ -58,9 +58,14 @@
 !sublime/payload/sublime-user/.neovintageousrc
 
 # Folders that are yours to fill: screenshots, keyboard layout exports,
-# cheatsheets. Allowed wholesale because their contents are unpredictable.
+# cheatsheets. Allowed wholesale because their contents are unpredictable —
+# .png, .hks, .pdf, whatever. Both forms: /* for files directly inside,
+# /** for anything nested.
 !hhkb/*
+!hhkb/**
 !docs/*
+!docs/**
+!karabiner/assets/*
 !karabiner/assets/**
 
 # ── Never, under any circumstances ──────────────────────────────────────────

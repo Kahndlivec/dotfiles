@@ -466,9 +466,14 @@ cat > "$D/.gitignore" <<'GI_EOF'
 !sublime/payload/sublime-user/.neovintageousrc
 
 # Folders that are yours to fill: screenshots, keyboard layout exports,
-# cheatsheets. Allowed wholesale because their contents are unpredictable.
+# cheatsheets. Allowed wholesale because their contents are unpredictable —
+# .png, .hks, .pdf, whatever. Both forms: /* for files directly inside,
+# /** for anything nested.
 !hhkb/*
+!hhkb/**
 !docs/*
+!docs/**
+!karabiner/assets/*
 !karabiner/assets/**
 
 # ── Never, under any circumstances ──────────────────────────────────────────
@@ -815,11 +820,24 @@ UNTRACKED=$(comm -23 \
   <( { git ls-files; git diff --cached --name-only; } | LC_ALL=C sort -u))
 if [ -n "$UNTRACKED" ]; then
   no "these files are in the repo folder but git will NOT save them:"
-  printf '%s\n' "$UNTRACKED" | sed 's/^/      /'
+  # Print the rule responsible for each one. check-ignore -v names the file and
+  # line number, which also catches a GLOBAL gitignore (core.excludesFile) —
+  # the cause that is otherwise invisible and infuriating.
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    RULE=$(git check-ignore -v -- "$f" 2>/dev/null | head -1)
+    if [ -n "$RULE" ]; then
+      printf '      %-52s  ← %s\n' "$f" "${RULE%%	*}"
+    else
+      printf '      %-52s  ← no rule matches; try: git add -f "%s"\n' "$f" "$f"
+    fi
+  done <<< "$UNTRACKED"
   say ""
-  say "If any of those matter, add a matching '!' line to .gitignore."
+  say "The '← ' column is the file:line of the rule. If it names a path outside"
+  say "this repo, it is your GLOBAL gitignore — check: git config --get core.excludesFile"
+  say ""
   say "Deliberately excluded: private keys, gh hosts.yml, *.tar.gz,"
-  say "*.sublime-workspace, shell history, .DS_Store."
+  say "*.sublime-workspace, shell history, .DS_Store, karabiner backups."
 else
   ok "every file in the repo folder is staged — nothing silently dropped"
 fi
