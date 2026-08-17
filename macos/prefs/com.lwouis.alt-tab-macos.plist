@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>MSAppCenter310AppCenterUserDefaultsMigratedKey</key>
+	<true/>
+	<key>MSAppCenter310CrashesUserDefaultsMigratedKey</key>
+	<true/>
+	<key>MSAppCenterInstallId</key>
+	<string>45D41B81-7BEC-47E4-A766-07A4F441E67C</string>
+	<key>MSAppCenterNetworkRequestsAllowed</key>
+	<false/>
+	<key>MSAppCenterPastDevices</key>
+	<data>
+	YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMS
+	AAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGvEBULDBIYHCJQUVJTVFVWV1hZ
+	WltcYWZVJG51bGzSDQ4PEVpOUy5vYmplY3RzViRjbGFzc6EQgAKAFNMTFA4VFhdcdGlt
+	ZXN0YW1wS2V5WWRldmljZUtleYADgAWAE9IZDhobV05TLnRpbWUjQcgZvKa1SKGABNId
+	Hh8gWiRjbGFzc25hbWVYJGNsYXNzZXNWTlNEYXRloh8hWE5TT2JqZWN03xAXIyQlJg4n
+	KCkqKywtLi8wMTIzNDU2Nzg5Ojs8PTs8PEFCPDw8PEdISUo8PE1OT1lvc1ZlcnNpb25e
+	dGltZVpvbmVPZmZzZXRYYXBwQnVpbGRfEBVsaXZlVXBkYXRlUGFja2FnZUhhc2haYXBw
+	VmVyc2lvbl8QEXdyYXBwZXJTZGtWZXJzaW9uW2NhcnJpZXJOYW1lV3Nka05hbWVWbG9j
+	YWxlXxAXbGl2ZVVwZGF0ZURlcGxveW1lbnRLZXleY2FycmllckNvdW50cnlab3NBcGlM
+	ZXZlbF53cmFwcGVyU2RrTmFtZVdvZW1OYW1lWnNka1ZlcnNpb25cYXBwTmFtZXNwYWNl
+	VW1vZGVsXxAVd3JhcHBlclJ1bnRpbWVWZXJzaW9uXxAWbGl2ZVVwZGF0ZVJlbGVhc2VM
+	YWJlbFpzY3JlZW5TaXplVm9zTmFtZVdvc0J1aWxkgAuADoAQgACAEoAQgACAAIAGgA2A
+	AIAAgACAAIAJgAeAEYAIgACAAIAPgAqADF8QD2FwcGNlbnRlci5tYWNvc1U0LjMuMF5N
+	YWNCb29rUHJvMTgsMVVBcHBsZVVtYWNPU1YyNi41LjJVMjVGODRVZW5fU0sQeFkyNTYw
+	eDE0NDBWMTEuNC40XxAYY29tLmx3b3Vpcy5hbHQtdGFiLW1hY29z0h0eXV5aTVNBQ0Rl
+	dmljZaNfYCFaTVNBQ0RldmljZV5NU0FDV3JhcHBlclNka9IdHmJjXxAVTVNBQ0Rldmlj
+	ZUhpc3RvcnlJbmZvo2RlIV8QFU1TQUNEZXZpY2VIaXN0b3J5SW5mb18QD01TQUNIaXN0
+	b3J5SW5mb9IdHmdoXk5TTXV0YWJsZUFycmF5o2dpIVdOU0FycmF5AAgAEQAaACQAKQAy
+	ADcASQBMAFEAUwBrAHEAdgCBAIgAigCMAI4AlQCiAKwArgCwALIAtwC/AMgAygDPANoA
+	4wDqAO0A9gEnATEBQAFJAWEBbAGAAYwBlAGbAbUBxAHPAd4B5gHxAf4CBAIcAjUCQAJH
+	Ak8CUQJTAlUCVwJZAlsCXQJfAmECYwJlAmcCaQJrAm0CbwJxAnMCdQJ3AnkCewJ9Ao8C
+	lQKkAqoCsAK3Ar0CwwLFAs8C1gLxAvYDAQMFAxADHwMkAzwDQANYA2oDbwN+A4IAAAAA
+	AAACAQAAAAAAAABqAAAAAAAAAAAAAAAAAAADig==
+	</data>
+	<key>MSAppCenterSessionIdHistory</key>
+	<data>
+	YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMS
+	AAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGnCwwSGBwiJ1UkbnVsbNINDg8R
+	Wk5TLm9iamVjdHNWJGNsYXNzoRCAAoAG0xMUDhUWF1x0aW1lc3RhbXBLZXlcc2Vzc2lv
+	bklkS2V5gAOAAIAF0hkOGhtXTlMudGltZSNByBm8prM6goAE0h0eHyBaJGNsYXNzbmFt
+	ZVgkY2xhc3Nlc1ZOU0RhdGWiHyFYTlNPYmplY3TSHR4jJF8QFk1TQUNTZXNzaW9uSGlz
+	dG9yeUluZm+jJSYhXxAWTVNBQ1Nlc3Npb25IaXN0b3J5SW5mb18QD01TQUNIaXN0b3J5
+	SW5mb9IdHigpXk5TTXV0YWJsZUFycmF5oygqIVdOU0FycmF5AAgAEQAaACQAKQAyADcA
+	SQBMAFEAUwBbAGEAZgBxAHgAegB8AH4AhQCSAJ8AoQCjAKUAqgCyALsAvQDCAM0A1gDd
+	AOAA6QDuAQcBCwEkATYBOwFKAU4AAAAAAAACAQAAAAAAAAArAAAAAAAAAAAAAAAAAAAB
+	Vg==
+	</data>
+	<key>MSAppCenterUserIdHistory</key>
+	<data>
+	YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMS
+	AAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGnCwwSGBwiJ1UkbnVsbNINDg8R
+	Wk5TLm9iamVjdHNWJGNsYXNzoRCAAoAG0xMUDhUWF1x0aW1lc3RhbXBLZXlZdXNlcklk
+	S2V5gAOAAIAF0hkOGhtXTlMudGltZSNByBm8prNKEoAE0h0eHyBaJGNsYXNzbmFtZVgk
+	Y2xhc3Nlc1ZOU0RhdGWiHyFYTlNPYmplY3TSHR4jJF8QFU1TQUNVc2VySWRIaXN0b3J5
+	SW5mb6MlJiFfEBVNU0FDVXNlcklkSGlzdG9yeUluZm9fEA9NU0FDSGlzdG9yeUluZm/S
+	HR4oKV5OU011dGFibGVBcnJheaMoKiFXTlNBcnJheQAIABEAGgAkACkAMgA3AEkATABR
+	AFMAWwBhAGYAcQB4AHoAfAB+AIUAkgCcAJ4AoACiAKcArwC4ALoAvwDKANMA2gDdAOYA
+	6wEDAQcBHwExATYBRQFJAAAAAAAAAgEAAAAAAAAAKwAAAAAAAAAAAAAAAAAAAVE=
+	</data>
+	<key>NSWindow Frame PermissionsWindow</key>
+	<string>603 557 521 371 0 0 1728 1084 </string>
+	<key>NSWindow Frame SUUpdateAlert2</key>
+	<string>1009 756 543 402 0 0 2560 1410 </string>
+	<key>NSWindow Frame SettingsWindow</key>
+	<string>816 669 933 570 0 0 2560 1410 </string>
+	<key>SUAutomaticallyUpdate</key>
+	<false/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUHasLaunchedBefore</key>
+	<true/>
+	<key>SULastCheckTime</key>
+	<date>2026-08-11T17:00:41Z</date>
+	<key>SUUpdateGroupIdentifier</key>
+	<integer>3421526003</integer>
+	<key>appearanceSize</key>
+	<string>1</string>
+	<key>hideShowAppShortcut</key>
+	<dict>
+		<key>secureData</key>
+		<data>
+		YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9i
+		amVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwZGhtV
+		JG51bGzWDQ4PEBESExQVFBcUXW1vZGlmaWVyRmxhZ3NfEBtjaGFyYWN0ZXJz
+		SWdub3JpbmdNb2RpZmllcnNWJGNsYXNzWmNoYXJhY3RlcnNXa2V5Q29kZVd2
+		ZXJzaW9ugAOAAIAEgACAAoAAEf//EADSHB0eH1okY2xhc3NuYW1lWCRjbGFz
+		c2VzWlNSU2hvcnRjdXSiHiBYTlNPYmplY3QIERokKTI3SUxRU1lfbHqYn6qy
+		ury+wMLExsnL0Nvk7/IAAAAAAAABAQAAAAAAAAAhAAAAAAAAAAAAAAAAAAAA
+		+w==
+		</data>
+		<key>string</key>
+		<string></string>
+	</dict>
+	<key>holdShortcut</key>
+	<dict>
+		<key>secureData</key>
+		<data>
+		YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9i
+		amVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRyb290gAGlCwwZGhtV
+		JG51bGzWDQ4PEBESExQVFBcUXW1vZGlmaWVyRmxhZ3NfEBtjaGFyYWN0ZXJz
+		SWdub3JpbmdNb2RpZmllcnNWJGNsYXNzWmNoYXJhY3RlcnNXa2V5Q29kZVd2
+		ZXJzaW9ugAOAAIAEgACAAoAAEf//EgAQAADSHB0eH1okY2xhc3NuYW1lWCRj
+		bGFzc2VzWlNSU2hvcnRjdXSiHiBYTlNPYmplY3QIERokKTI3SUxRU1lfbHqY
+		n6qyury+wMLExsnO097n8vUAAAAAAAABAQAAAAAAAAAhAAAAAAAAAAAAAAAA
+		AAAA/g==
+		</data>
+		<key>string</key>
+		<string>⌘</string>
+	</dict>
+	<key>preferencesVersion</key>
+	<string>11.4.4</string>
+	<key>settingsWindowShownOnFirstLaunch</key>
+	<string>true</string>
+	<key>updatePolicy</key>
+	<string>1</string>
+	<key>vimKeysEnabled</key>
+	<string>true</string>
+</dict>
+</plist>

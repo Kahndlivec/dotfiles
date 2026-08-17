@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>proTransition.freePassUsed</key>
+	<true/>
+	<key>proTransition.hasSeenDay21</key>
+	<true/>
+	<key>proTransition.hasSeenDay35</key>
+	<true/>
+	<key>proTransition.hasSeenFullUpgrade</key>
+	<true/>
+	<key>proTransition.hasSeenWelcome</key>
+	<true/>
+	<key>proTransition.hasTriggeredPostExpirationSwitcher</key>
+	<true/>
+	<key>proTransition.isFreshInstall</key>
+	<true/>
+	<key>proTransition.rememberedAppearanceSize</key>
+	<integer>3</integer>
+	<key>proTransition.userOptedOut</key>
+	<true/>
+	<key>trialStartDate</key>
+	<real>1782659912.6829929</real>
+</dict>
+</plist>

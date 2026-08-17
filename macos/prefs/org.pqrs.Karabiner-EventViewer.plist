@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSSplitView Subview Frames main, SidebarNavigationSplitView</key>
+	<array>
+		<string>0.000000, 0.000000, 258.000000, 702.000000, NO, NO</string>
+		<string>0.000000, 0.000000, 1100.000000, 702.000000, NO, NO</string>
+	</array>
+	<key>NSWindow Frame main</key>
+	<string>-1830 243 1100 702 -2560 -111 2560 1410 </string>
+</dict>
+</plist>
