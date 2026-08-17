@@ -31,6 +31,11 @@
 !**/*.sublime-project
 !**/*.cpp
 !**/*.h
+!**/*.lua
+!**/*.vim
+!**/*.conf
+!**/*.cfg
+!**/*.ini
 
 # Dotfiles that have no extension
 !zsh/.zshrc
@@ -43,6 +48,12 @@
 !tmux/tmux.conf
 !tmux/.tmux.conf
 !apps/*
+!bat/config
+!clang-format/.clang-format
+!ripgrep/.ripgreprc
+!editorconfig/.editorconfig
+!misc/.hushlogin
+!nvim/**
 !sublime/payload/sublime-user/.neovintageousrc
 
 # ── Never, under any circumstances ──────────────────────────────────────────

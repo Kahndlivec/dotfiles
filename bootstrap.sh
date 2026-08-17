@@ -17,7 +17,14 @@ put(){ # put <repo-relative> <destination>
   [ -e "$D/$1" ] || { sk "$1 not in repo"; return; }
   mkdir -p "$(dirname "$2")"
   [ -e "$2" ] && cp -R "$2" "$B/" 2>/dev/null
-  cp -R "$D/$1" "$2" && ok "$1 → $2"
+  if [ -d "$D/$1" ]; then
+    # Same cp -R trap as in the collector: copy CONTENTS, not the directory,
+    # or a re-run nests it one level deeper each time.
+    mkdir -p "$2"
+    cp -R "$D/$1/." "$2/" && ok "$1/ → $2/"
+  else
+    cp "$D/$1" "$2" && ok "$1 → $2"
+  fi
 }
 
 hdr "1  Homebrew"
@@ -84,6 +91,32 @@ if command -v code >/dev/null && [ -f "$D/vscode/extensions.txt" ]; then
   ok "extensions"
 else
   sk "extensions — install the 'code' shell command first"
+fi
+
+hdr "5b  Editors and CLI tools"
+put nvim              "$HOME/.config/nvim"
+put clang-format/.clang-format "$HOME/.clang-format"
+put gh/config.yml     "$HOME/.config/gh/config.yml"
+put ripgrep/.ripgreprc "$HOME/.ripgreprc"
+put editorconfig/.editorconfig "$HOME/.editorconfig"
+put starship/starship.toml "$HOME/.config/starship.toml"
+put bat/config        "$HOME/.config/bat/config"
+put lazygit/config.yml "$HOME/Library/Application Support/lazygit/config.yml"
+put misc/.hushlogin   "$HOME/.hushlogin"
+
+hdr "5c  Karabiner"
+# Karabiner-Elements rewrites karabiner.json from memory when it is running,
+# so restoring underneath a live process silently loses the file.
+if [ -f "$D/karabiner/karabiner.json" ]; then
+  if pgrep -qx "karabiner_console_user_server" 2>/dev/null || pgrep -qf "Karabiner-Elements" 2>/dev/null; then
+    sk "Karabiner is RUNNING — quit it fully (menu bar → Quit), then re-run this script"
+    echo "      Copying now would be overwritten from memory within seconds."
+  else
+    put karabiner/karabiner.json "$HOME/.config/karabiner/karabiner.json"
+    echo "      Open Karabiner-Elements and confirm the profile loaded."
+  fi
+else
+  sk "no karabiner.json in repo"
 fi
 
 hdr "6  Sublime CP setup"

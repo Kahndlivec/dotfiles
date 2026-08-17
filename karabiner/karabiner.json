@@ -5,6 +5,22 @@
             "complex_modifications": {
                 "rules": [
                     {
+                        "description": "Right command on hold, Escape when tapped",
+                        "enabled": false,
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "right_command",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "parameters": { "basic.to_if_alone_timeout_milliseconds": 200 },
+                                "to": [{ "key_code": "right_command" }],
+                                "to_if_alone": [{ "key_code": "escape" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "MacBook keyboard parity: fn+hjkl -> arrows, fn+u/d -> page, fn+delete -> forward delete (skips the HHKB). NOTE: ctrl+fn variants come first so word-motion still works on the built-in keyboard.",
                         "manipulators": [
                             {
@@ -361,6 +377,7 @@
                     },
                     {
                         "description": "Diamond: layer when held, Escape when tapped",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -373,6 +390,11 @@
                                             "name": "hhkb",
                                             "value": 1
                                         }
+                                    },
+                                    {
+                                        "key_code": "left_shift",
+                                        "lazy": true,
+                                        "modifiers": ["left_control", "left_option"]
                                     }
                                 ],
                                 "to_after_key_up": [
