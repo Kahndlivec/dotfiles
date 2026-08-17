@@ -28,6 +28,9 @@ exists.
 | `tmux/` | tmux config; TPM is re-cloned by bootstrap, plugins install with `prefix + I` |
 | `vscode/` | settings, keybindings, snippets, `extensions.txt` |
 | `zsh/` | shell |
+| `karabiner/` | karabiner config |
+| `clang-format/` | clang format and config |
+| `hhkb + pc/` | hhkb remap layout + pc mods |
 | `git/` | global gitconfig |
 | `ssh/` | `config`, `known_hosts`, `allowed_signers`, `*.pub` — **no private keys** |
 | `apps/apps_without_casks.md` | apps installed by hand that `brew bundle` won't restore |
