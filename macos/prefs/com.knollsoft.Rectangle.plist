@@ -10,6 +10,13 @@
 	<true/>
 	<key>alternateDefaultShortcuts</key>
 	<true/>
+	<key>bottomHalf</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>38</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
 	<key>centerHalf</key>
 	<dict/>
 	<key>installVersion</key>
@@ -22,12 +29,26 @@
 	<string>102</string>
 	<key>launchOnLogin</key>
 	<true/>
+	<key>leftHalf</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>4</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
 	<key>portraitSnapAreas</key>
 	<string>null</string>
 	<key>reflowTodo</key>
 	<dict>
 		<key>keyCode</key>
 		<integer>45</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
+	<key>rightHalf</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>37</integer>
 		<key>modifierFlags</key>
 		<integer>786432</integer>
 	</dict>
@@ -45,6 +66,13 @@
 	<dict>
 		<key>keyCode</key>
 		<integer>11</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
+	<key>topHalf</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>40</integer>
 		<key>modifierFlags</key>
 		<integer>786432</integer>
 	</dict>

@@ -21,6 +21,8 @@ MSG="${2:-}"
 CPB="$HOME/Documents/cp-portable"
 ADDED=0; SKIPPED=0
 
+HERE_SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 ok(){  printf '  \033[32m✓\033[0m %s\n' "$1"; ADDED=$((ADDED+1)); }
 sk(){  printf '  \033[33m–\033[0m %s\n' "$1"; SKIPPED=$((SKIPPED+1)); }
 no(){  printf '  \033[31m✗\033[0m %s\n' "$1"; }
@@ -161,6 +163,41 @@ for k in "$D"/ssh/*; do
   rm -f "$k" && no "removed $(basename "$k") from the repo — private keys do not go in git"
 done
 
+# ── npm globals ──────────────────────────────────────────────────────────────
+hdr "5c2  npm global packages"
+# These are invisible to `brew bundle dump`: language servers and the Claude
+# CLI live here, and without this list a fresh Mac silently has no LSP.
+if command -v npm >/dev/null; then
+  mkdir -p "$D/npm"
+  npm ls -g --depth=0 --json 2>/dev/null | python3 -c '
+import json,sys
+try: d=json.load(sys.stdin)
+except Exception: d={}
+for k in sorted(d.get("dependencies",{})):
+    if k != "npm": print(k)
+' > "$D/npm/global-packages.txt"
+  if [ -s "$D/npm/global-packages.txt" ]; then
+    ok "npm/global-packages.txt ($(wc -l <"$D/npm/global-packages.txt" | tr -d ' ') packages)"
+  else
+    rm -f "$D/npm/global-packages.txt"; sk "no npm globals"
+  fi
+else
+  sk "npm not installed"
+fi
+
+# ── GUI app preferences ──────────────────────────────────────────────────────
+hdr "5c4  App preferences (Rectangle, AltTab, Raycast, LinearMouse…)"
+# These apps have no editable config file, only binary plists. Without this
+# step they are silently NOT backed up, and you only find out on a new Mac.
+if [ -f "$HERE_SCRIPTS/macos-prefs.sh" ]; then
+  DOTFILES_REPO="$D" bash "$HERE_SCRIPTS/macos-prefs.sh" export 2>/dev/null | sed 's/^/  /'
+elif [ -f "$D/scripts/macos-prefs.sh" ]; then
+  DOTFILES_REPO="$D" bash "$D/scripts/macos-prefs.sh" export 2>/dev/null | sed 's/^/  /'
+else
+  sk "macos-prefs.sh not found — GUI app settings not captured"
+  say "put it in $D/scripts/ and re-run"
+fi
+
 # ── Apps: generated, never hand-maintained ───────────────────────────────────
 hdr "5d  App inventory (generated)"
 # Every .app on this Mac is one of three things, and only the third needs you
@@ -293,6 +330,28 @@ hdr "5e  Editors and CLI tool configs"
 # the habits are meant to transfer — when you make the jump this becomes the
 # single most valuable directory in the repo.
 grab "$HOME/.config/nvim" "nvim"
+
+# Doom Emacs. Primary editor for everything except agency frontend work: CP,
+# C++/ML projects, org notes, LaTeX, PDF reading.
+#
+# grab is not used here. Doom drops natively-compiled bytecode (*.elc, *.eln,
+# eln-cache/) into DOOMDIR, compiled for THIS CPU and THIS Emacs build. It is
+# useless on another machine and megabytes of churn in every diff. custom.el is
+# machine-local state written by M-x customize. +local.el is a per-machine
+# override (the homelab uses it to swap g++-16 for g++), so it must never be
+# collected or a sync would clobber it.
+if [ -d "$HOME/.config/doom" ]; then
+  rm -rf "$D/doom"; mkdir -p "$D/doom"
+  rsync -a \
+    --exclude '.local/' --exclude 'eln-cache/' \
+    --exclude '*.elc'   --exclude '*.eln' \
+    --exclude 'custom.el' --exclude '+local.el' \
+    --exclude '.git/' \
+    "$HOME/.config/doom/" "$D/doom/" \
+    && ok "doom/ ($(find "$D/doom" -type f | wc -l | tr -d ' ') files)"
+else
+  sk "doom/ — not on this machine"
+fi
 
 # Karabiner. Not installed yet, but the old handoff had a
 # karabiner-hhkb-parity.json planned; if you ever load it, this catches it.
@@ -440,6 +499,7 @@ cat > "$D/.gitignore" <<'GI_EOF'
 !**/*.cpp
 !**/*.h
 !**/*.lua
+!**/*.el
 !**/*.vim
 !**/*.conf
 !**/*.cfg
@@ -463,6 +523,12 @@ cat > "$D/.gitignore" <<'GI_EOF'
 !editorconfig/.editorconfig
 !misc/.hushlogin
 !nvim/**
+!npm/*
+!doom/**
+# snippets/c++-mode/cp has no extension — the allowlist would drop it silently,
+# and you'd only find out when `cp` + TAB did nothing on a fresh machine.
+!doom/snippets/**
+!doom/templates/**
 !sublime/payload/sublime-user/.neovintageousrc
 
 # Folders that are yours to fill: screenshots, keyboard layout exports,
@@ -498,6 +564,14 @@ id_dsa*
 # Karabiner writes a dated snapshot every time you touch its settings. Git is
 # already your history — these are duplicate history, and they pile up.
 karabiner/automatic_backups/
+
+# Doom build artefacts — CPU- and build-specific, never portable.
+doom/.local/
+doom/eln-cache/
+doom/**/*.elc
+doom/**/*.eln
+doom/custom.el
+doom/+local.el
 # A file literally named "~" turns up in Karabiner's assets dir. It is junk
 # from a mis-typed path, not a config.
 **/~
@@ -612,6 +686,7 @@ fi
 
 hdr "5b  Editors and CLI tools"
 put nvim              "$HOME/.config/nvim"
+put doom              "$HOME/.config/doom"
 put clang-format/.clang-format "$HOME/.clang-format"
 put gh/config.yml     "$HOME/.config/gh/config.yml"
 put ripgrep/.ripgreprc "$HOME/.ripgreprc"
@@ -634,6 +709,36 @@ if [ -f "$D/karabiner/karabiner.json" ]; then
   fi
 else
   sk "no karabiner.json in repo"
+fi
+
+hdr "5c3  npm globals"
+if command -v npm >/dev/null && [ -f "$D/npm/global-packages.txt" ]; then
+  echo "  installing $(wc -l <"$D/npm/global-packages.txt" | tr -d ' ') global packages…"
+  xargs npm i -g < "$D/npm/global-packages.txt" >/dev/null 2>&1 && ok "npm globals"
+else
+  sk "npm globals — npm missing or no list in repo"
+fi
+
+hdr "5d  Doom Emacs"
+# Doom is a git clone, same as TPM. The config in doom/ is yours; Doom itself
+# is not vendored. Without this step ~/.config/doom sits there doing nothing.
+if [ -d "$HOME/.config/doom" ]; then
+  if [ ! -d "$HOME/.config/emacs" ]; then
+    git clone -q --depth 1 https://github.com/doomemacs/doomemacs "$HOME/.config/emacs" \
+      && ok "cloned Doom"
+  else ok "Doom already present"; fi
+  if [ -d "$HOME/.config/emacs" ]; then
+    echo "  running doom install — several minutes"
+    "$HOME/.config/emacs/bin/doom" install --force && ok "doom install"
+    echo
+    echo "      Then, inside Emacs, once:"
+    echo "          M-x nerd-icons-install-fonts"
+    echo "          M-x pdf-tools-install"
+    echo "      And symlink the app so it's launchable:"
+    echo "          ln -s /opt/homebrew/opt/emacs-plus@31/Emacs.app /Applications/Emacs.app"
+  fi
+else
+  sk "no doom/ in repo"
 fi
 
 hdr "6  Sublime CP setup"

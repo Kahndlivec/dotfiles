@@ -32,6 +32,7 @@
 !**/*.cpp
 !**/*.h
 !**/*.lua
+!**/*.el
 !**/*.vim
 !**/*.conf
 !**/*.cfg
@@ -55,6 +56,12 @@
 !editorconfig/.editorconfig
 !misc/.hushlogin
 !nvim/**
+!npm/*
+!doom/**
+# snippets/c++-mode/cp has no extension — the allowlist would drop it silently,
+# and you'd only find out when `cp` + TAB did nothing on a fresh machine.
+!doom/snippets/**
+!doom/templates/**
 !sublime/payload/sublime-user/.neovintageousrc
 
 # Folders that are yours to fill: screenshots, keyboard layout exports,
@@ -90,6 +97,14 @@ id_dsa*
 # Karabiner writes a dated snapshot every time you touch its settings. Git is
 # already your history — these are duplicate history, and they pile up.
 karabiner/automatic_backups/
+
+# Doom build artefacts — CPU- and build-specific, never portable.
+doom/.local/
+doom/eln-cache/
+doom/**/*.elc
+doom/**/*.eln
+doom/custom.el
+doom/+local.el
 # A file literally named "~" turns up in Karabiner's assets dir. It is junk
 # from a mis-typed path, not a config.
 **/~
@@ -101,3 +116,9 @@ karabiner/automatic_backups/
 !ssh/known_hosts
 !ssh/allowed_signers
 !ssh/*.pub
+
+# Not settings: Apple telemetry, and app runtime state that churns every run.
+macos/prefs/com.apple.*
+macos/prefs/com.raycast.macos.plist
+macos/prefs/*.usage.plist
+macos/prefs/*.license.plist

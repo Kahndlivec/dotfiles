@@ -1,111 +1,415 @@
 {
+  // ═══════════════════════════════════════════════════════════════════════
+  //  VS Code settings.json — port of your Sublime Preferences.sublime-settings
+  //  Target: ML / math / web / general dev. NOT competitive programming.
+  //  Vim layer: vscode-neovim (real Neovim embedded).
+  //
+  //  Sections marked [PORT] are your Sublime setting, translated.
+  //  Sections marked [NEW]  have no Sublime equivalent — they exist because
+  //                         VS Code needs them or because you're doing ML/web
+  //                         work you weren't doing in Sublime.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // ── NEOVIM ─────────────────────────────────────────────────────────────
+  // [NEW] Path to the nvim binary. Apple Silicon Homebrew installs here.
+  // Intel Macs: "/usr/local/bin/nvim". Verify with `which nvim`.
+  "vscode-neovim.neovimExecutablePaths.darwin": "/opt/homebrew/bin/nvim",
+
+  // Give the extension its own extension host process. Without this,
+  // every keystroke queues behind other extensions and Vim feels laggy.
+  // This is the single most impactful vscode-neovim setting.
+  "extensions.experimental.affinity": {
+    "asvetliakov.vscode-neovim": 1,
+  },
+
+  // jk -> Escape. Your HHKB has Control under the left pinky so <C-[> is
+  // already cheap; this is a second exit that never leaves home row.
+  // Delete this block if you'd rather train <C-[> exclusively.
+
+  // Neovim's own 'scrolloff' can't drive VS Code's viewport, so this is the
+  // equivalent. 8 lines of context above/below the caret.
+  "editor.cursorSurroundingLines": 5,
+
+  // ── APPEARANCE ─────────────────────────────────────────────────────────
+  // [PORT] color_scheme / theme -> Monokai Pro (monokai.theme-monokai-pro-vscode)
+  "workbench.colorTheme": "Monokai Pro",
+
+  // [PORT] "A File Icon" -> Material Icon Theme (pkief, already installed).
+  // If you want the Monokai-native look instead: "Monokai Pro Icons".
+  "workbench.iconTheme": "material-icon-theme",
+
+  // [PORT] font_face / font_size
+  "editor.fontFamily": "'JetBrainsMono Nerd Font Mono', 'JetBrains Mono', Menlo, monospace",
   "editor.fontSize": 14,
-  "editor.fontFamily": "'JetBrains Mono', Menlo, monospace",
   "editor.fontLigatures": true,
-  "editor.lineHeight": 1.5,
-  "editor.cursorBlinking": "smooth",
-  "editor.smoothScrolling": true,
-  "editor.formatOnPaste": false,
-  "editor.tabSize": 2,
-  "editor.rulers": [80, 120],
-  "editor.bracketPairColorization.enabled": true,
+
+  // [PORT] line_padding_top 2 + line_padding_bottom 2. VS Code has no
+  // separate top/bottom padding; lineHeight is the whole box. 1.6 × 14px
+  // ≈ 22px, which is your 18px glyph box + ~4px of padding.
+  "editor.lineHeight": 1.6,
+
+  // [PORT] line_numbers + relative_line_numbers.
+  // "relative" in VS Code = Vim's number+relativenumber: current line shows
+  // its absolute number, everything else shows the distance.
+  "editor.lineNumbers": "relative",
+
+  // [PORT] caret_style "solid" — same reasoning as your Sublime comment.
+  // The block-vs-bar caret is your only mode indicator; blinking smears it.
+  "editor.cursorBlinking": "solid",
+  "editor.cursorStyle": "line",
+
+  // [PORT] highlight_line
+  "editor.renderLineHighlight": "all",
+
+  // [PORT] indent_guide_options ["draw_normal", "draw_active"]
+  "editor.guides.indentation": true,
+  "editor.guides.highlightActiveIndentation": true,
   "editor.guides.bracketPairs": "active",
-  "editor.suggestSelection": "first",
-  "editor.linkedEditing": true,
+
+  // [PORT] match_brackets_content
+  "editor.matchBrackets": "always",
+  "editor.bracketPairColorization.enabled": true,
+
+  // [PORT] draw_white_space ["selection", "trailing"]. VS Code can't combine
+  // the two modes. "selection" is the useful half — trailing whitespace is
+  // stripped on save anyway (see files.trimTrailingWhitespace below).
+  "editor.renderWhitespace": "selection",
+
+  // [PORT] rulers [100]
+  "editor.rulers": [100],
+
+  // [PORT] show_tab_close_buttons false
+  "workbench.editor.tabCloseButton": "off",
+
+  // [PORT] highlight_modified_tabs
+  "workbench.editor.highlightModifiedTabs": true,
+
+  // [PORT] scroll_past_end 0.5
+  "editor.scrollBeyondLastLine": true,
+
+  // [NEW] The minimap is Sublime's, not Vim's. With relative line numbers
+  // and `/` search you never look at it, and it eats 120px of every split.
+  // Set to true if you disagree.
+  "editor.minimap.enabled": false,
+
+  // [NEW] Opening a file from the sidebar with a single click normally makes
+  // an italic "preview" tab that the next file replaces. Sublime never did
+  // that; off means every file you open stays open.
+  "workbench.editor.enablePreview": false,
+  "workbench.startupEditor": "none",
+
+  // [PORT] show_encoding / show_line_endings / show_definitions false
+  "editor.hover.delay": 300,
+  "breadcrumbs.enabled": true,
+
+  // [ADDED — from the second-opinion list, and it's a good catch]
+  // Pins the enclosing function/class/if to the top of the viewport as you
+  // scroll past its opening line. Sublime has no equivalent. It pays for
+  // itself the first time you're 200 lines into a training loop and can't
+  // remember which branch you're in.
   "editor.stickyScroll.enabled": true,
-  "files.trimTrailingWhitespace": true,
+  "editor.stickyScroll.maxLineCount": 5,
+
+  // [ADDED — same source] Edit a JSX/HTML opening tag and the closing tag
+  // follows. Free, and you're doing React work.
+  "editor.linkedEditing": true,
+
+  // ── EDITING ────────────────────────────────────────────────────────────
+  // [PORT] tab_size 4 + translate_tabs_to_spaces
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+
+  // [PORT] detect_indentation false — same reason as your Sublime comment:
+  // stops the editor guessing indentation off a pasted snippet.
+  "editor.detectIndentation": false,
+
+  // [PORT] word_wrap false
+  "editor.wordWrap": "off",
+
+  // [PORT] auto_indent / smart_indent
+  "editor.autoIndent": "full",
+
+  // [PORT] copy_with_empty_selection false
+  "editor.emptySelectionClipboard": false,
+
+  // [PORT] drag_text false
+  "editor.dragAndDrop": false,
+
+  // [PORT] find_selected_text
+  "editor.find.seedSearchStringFromSelection": "always",
+
+  // [NEW] Vim gives you dd / yy / p; the OS-level "duplicate line" and
+  // "move line" commands are redundant. Leaving defaults alone here.
+  "editor.suggestSelection": "first",
+
+  // ── COMPLETION ─────────────────────────────────────────────────────────
+  // [PORT] auto_complete true
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "off",
+    // "on" for strings makes Tailwind class completion work inside
+    // className="..." — needed by bradlc.vscode-tailwindcss.
+    "strings": "on",
+  },
+
+  // [PORT] auto_complete_delay 50 — same reasoning: 0 makes the popup thrash
+  // once a real language server is feeding it.
+  "editor.quickSuggestionsDelay": 50,
+
+  // [PORT] auto_complete_commit_on_tab true.
+  // Tab accepts the suggestion; Enter inserts a newline. This is exactly the
+  // behaviour your Sublime comment describes wanting.
+  "editor.acceptSuggestionOnEnter": "off",
+  "editor.tabCompletion": "on",
+
+  // [PORT] auto_complete_with_fields false — don't insert placeholder
+  // arguments you then have to Tab through.
+  "editor.suggest.insertMode": "insert",
+  "editor.snippetSuggestions": "inline",
+  "python.analysis.completeFunctionParens": false,
+  "C_Cpp.autocompleteAddParentheses": false,
+  "typescript.suggest.completeFunctionCalls": false,
+  "javascript.suggest.completeFunctionCalls": false,
+
+  // ── FILES & SAVING ─────────────────────────────────────────────────────
+  // [PORT] ensure_newline_at_eof_on_save
   "files.insertFinalNewline": true,
 
-  "workbench.startupEditor": "none",
-  "workbench.list.smoothScrolling": true,
-  "workbench.tree.indent": 16,
-  "window.commandCenter": true,
-  "window.nativeTabs": true,
+  // [PORT] trim_trailing_white_space_on_save "all"
+  "files.trimTrailingWhitespace": true,
+  "files.trimFinalNewlines": true,
 
+  // [PORT] save_on_focus_lost
+  "files.autoSave": "onFocusChange",
+
+  // [PORT] default_line_ending "unix"
+  "files.eol": "\n",
+
+  // [PORT] hot_exit "always"
+  "files.hotExit": "onExitAndWindowClose",
+
+  // [PORT] open_files_in_new_window "never"
+  "window.openFilesInNewWindow": "off",
+
+  // [NEW] Format on save, per-language formatter set below. This replaces
+  // the "run prettier manually" habit — esbenp.prettier-vscode is installed.
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+  },
+  // ESLint reports problems; Prettier formats. Don't let ESLint format too.
+  "eslint.format.enable": false,
+
+  // ── EXCLUDES ───────────────────────────────────────────────────────────
+  // [PORT] folder_exclude_patterns + file_exclude_patterns, retargeted at
+  // Python/ML/JS instead of CP binaries.
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ipynb_checkpoints": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.turbo": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/*.egg-info": true,
+  },
+
+  // Searched-but-not-hidden: you still want these in the tree, just not in
+  // ⌘P results or find-in-files.
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/venv": true,
+    "**/__pycache__": true,
+    "**/.ipynb_checkpoints": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.next": true,
+    "**/*.lock": true,
+    "**/package-lock.json": true,
+    "**/pnpm-lock.yaml": true,
+    "**/*.ckpt": true,
+    "**/*.safetensors": true,
+    "**/*.pt": true,
+    "**/*.pth": true,
+    "**/*.onnx": true,
+    "**/data/**": true,
+  },
+
+  // [PORT] binary_file_patterns — VS Code equivalent is excluding them from
+  // the file watcher so large model checkpoints don't churn the CPU.
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/node_modules/**": true,
+    "**/.venv/**": true,
+    "**/__pycache__/**": true,
+    "**/*.safetensors": true,
+    "**/*.ckpt": true,
+    "**/*.pt": true,
+  },
+
+  // ── PYTHON / ML ────────────────────────────────────────────────────────
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.inlayHints.functionReturnTypes": true,
+  "python.analysis.inlayHints.variableTypes": false,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+
+  // Requires charliermarsh.ruff (see extensions-to-add.txt). Ruff is a
+  // linter AND formatter, ~100× faster than black+flake8, and one binary.
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit",
+    },
+  },
+
+  // Notebooks: relative line numbers here too, so Vim motions read the same
+  // inside a cell as outside one.
+  "notebook.lineNumbers": "on",
+  "notebook.output.textLineLimit": 60,
+  "notebook.output.scrolling": true,
+  "notebook.formatOnSave.enabled": true,
+  "notebook.diff.ignoreMetadata": true,
+  "jupyter.askForKernelRestart": false,
+  "jupyter.interactiveWindow.textEditor.executeSelection": true,
+
+  // ── WEB / TS / REACT ───────────────────────────────────────────────────
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": { "other": "off" },
+  },
+
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.inlayHints.parameterNames.enabled": "literals",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "tailwindCSS.emmetCompletions": true,
+  "emmet.includeLanguages": {
+    "javascriptreact": "html",
+    "typescriptreact": "html",
+  },
+
+  // ── C++ ────────────────────────────────────────────────────────────────
+  // SKIP THIS WHOLE SECTION if you don't write C++ in VS Code — you said CP
+  // stays in Sublime, so this may be dead weight. Delete the six clangd/C_Cpp
+  // lines and keep only the "[cpp]" tabSize if so.
+  //
+  // Otherwise: clangd instead of Microsoft's IntelliSense. This is the one
+  // clearly-right call on the second-opinion list. Same engine your Sublime
+  // LSP-clangd already uses, so diagnostics match between the two editors.
+  //
+  // The two engines fight if both are live, so IntelliSense goes off. Note
+  // you KEEP ms-vscode.cpptools installed — clangd has no debugger, and
+  // cpptools' cppdbg still works fine with IntelliSense disabled.
+  //
+  // clangd needs a compile_commands.json to understand flags. CMake emits
+  // one with -DCMAKE_EXPORT_COMPILE_COMMANDS=ON; for loose files, `bear --
+  // make` or a .clangd file with a CompileFlags block.
+  "[cpp]": {
+    "editor.tabSize": 4,
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+  },
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "clangd.arguments": [
+    "--background-index",
+    "--clang-tidy",
+    "--header-insertion=never",
+    "--completion-style=detailed",
+    // Matches auto_complete_with_fields false above and your Sublime
+    // LSP-clangd setting — no placeholder arguments to Tab through.
+    "--function-arg-placeholders=0",
+  ],
+
+  // ── EXTENSION NOISE CONTROL ────────────────────────────────────────────
+  // errorlens: inline diagnostics. Errors and warnings only — info/hint
+  // messages from Pylance turn every line into a wall of grey text.
+  "errorLens.enabledDiagnosticLevels": ["error", "warning"],
+  "errorLens.messageMaxChars": 140,
+  "errorLens.followCursor": "allLines",
+
+  // gitlens: the inline blame annotation on the current line follows your
+  // caret everywhere and is very distracting with Vim motions. Blame is
+  // still one hover away, and the gutter/file history views are untouched.
+  "gitlens.currentLine.enabled": false,
+  "gitlens.codeLens.enabled": false,
+  "gitlens.hovers.currentLine.over": "line",
+
+  "indentRainbow.indicatorStyle": "light",
+  "indentRainbow.lightIndicatorStyleLineWidth": 1,
+
+  // code-runner: run in the integrated terminal (so stdin works and you can
+  // scroll back), save first, and don't clear previous output.
+  "code-runner.runInTerminal": true,
+  "code-runner.saveFileBeforeRun": true,
+  "code-runner.clearPreviousOutput": false,
+  "code-runner.ignoreSelection": true,
+
+  // ── TERMINAL & GIT ─────────────────────────────────────────────────────
+  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font', monospace",
   "terminal.integrated.fontSize": 13,
   "terminal.integrated.defaultProfile.osx": "zsh",
-  "terminal.integrated.cursorBlinking": true,
-
-  "explorer.confirmDelete": false,
-  "explorer.compactFolders": false,
+  "terminal.integrated.cursorBlinking": false,
+  "terminal.integrated.scrollback": 10000,
 
   "git.autofetch": true,
   "git.confirmSync": false,
   "git.enableSmartCommit": true,
+  "diffEditor.ignoreTrimWhitespace": false,
 
-  "breadcrumbs.enabled": true,
-  "zenMode.hideLineNumbers": false,
-  "emmet.triggerExpansionOnTab": true,
-  "files.associations": {
-    "*html": "html",
-    "*njk": "html",
-  },
-  "customizeUI.stylesheet": {
-    ".tabs-and-actions-container .editor-actions": "display: none !important;",
-  },
-  "editor.minimap.enabled": false,
-  "emmet.useInlineCompletions": true,
-  "emmet.includeLanguages": {
-    "javascript": "javascriptreact",
-    "typescript": "typescriptreact",
-    "vue-html": "html",
-    "vue": "html",
-    "razor": "html",
-    "plaintext": "pug",
-    "django-html": "html",
-  },
-  "emmet.showSuggestionsAsSnippets": true,
-  "emmet.showExpandedAbbreviation": "always",
-  "remote.autoForwardPortsSource": "hybrid",
-  "workbench.iconTheme": "Monokai Icons",
-  "accessibility.signals.terminalBell": {
-    "sound": "on",
-  },
-  "terminal.integrated.enableVisualBell": true,
-  "[python]": {
-    "diffEditor.ignoreTrimWhitespace": false,
-    "editor.formatOnType": true,
-    "editor.wordBasedSuggestions": "allDocuments",
-  },
-  "files.autoSave": "onFocusChange",
-  "cmake.configureOnOpen": true,
-  "cmake.options.advanced": {
-    "build": {
-      "statusBarVisibility": "inherit",
-      "inheritDefault": "visible",
-    },
-    "launch": {
-      "statusBarVisibility": "inherit",
-      "inheritDefault": "visible",
-    },
-    "debug": {
-      "statusBarVisibility": "inherit",
-      "inheritDefault": "visible",
-    },
-  },
-  "C_Cpp.default.compilerPath": "C:\\msys64\\ucrt64\\bin\\g++.exe",
-  "python.createEnvironment.trigger": "off",
-  "github.copilot.enable": {
-    "*": false,
-    "plaintext": false,
-    "markdown": false,
-    "scminput": false,
-  },
-  "workbench.editor.enablePreview": false,
-  "editor.formatOnSave": true,
-  "workbench.activityBar.location": "bottom",
-  "workbench.colorTheme": "Monokai Pro",
-  "[cpp]": {
-    "editor.wordBasedSuggestions": "off",
-    "editor.semanticHighlighting.enabled": true,
-    "editor.stickyScroll.defaultModel": "foldingProviderModel",
-    "editor.suggest.insertMode": "replace",
-    "editor.fontSize": 14,
-  },
-  "claudeCode.preferredLocation": "panel",
-  "claudeCode.allowDangerouslySkipPermissions": true,
-  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "explorer.compactFolders": false,
+
+  "telemetry.telemetryLevel": "off",
+  "update.showReleaseNotes": false,
+  "workbench.editor.tabActionCloseVisibility": false,
   "security.workspace.trust.untrustedFiles": "open",
-  "settingsSync.ignoredExtensions": [],
-  "settingsSync.ignoredSettings": [],
+  "workbench.activityBar.compact": true,
 }

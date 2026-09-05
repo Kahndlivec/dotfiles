@@ -45,8 +45,12 @@ let mapleader=<Space>
 "  that exists. Use it. With Control back on home row, C-[ is also a real
 "  option now. jk is the third fallback; pick one and stop thinking about it.
 " ═══════════════════════════════════════════════════════════════════════════
-inoremap jk <Esc>
-cnoremap jk <Esc>
+" [jk removed - real ~200ms stall on every j you type in
+"  insert mode, and j is a C++ loop variable. Use Ctrl-[.]
+" inoremap jk <Esc>
+" [jk removed - real ~200ms stall on every j you type in
+"  insert mode, and j is a C++ loop variable. Use Ctrl-[.]
+" cnoremap jk <Esc>
 
 " ═══════════════════════════════════════════════════════════════════════════
 "  hjkl — no escape hatches
@@ -68,12 +72,16 @@ nnoremap k gk
 
 " H / L as line start / end. `^` and `$` are shifted, awkward keys you'd
 " otherwise hit a hundred times an hour.
-nnoremap H ^
-nnoremap L $
-vnoremap H ^
-vnoremap L $
-onoremap H ^
-onoremap L $
+" [H/L reverted to vanilla: screen-top / screen-bottom, with M in
+"  the middle. They mean that in every vim you did not configure -
+"  ssh, someone else's machine, less, man, vimium. Use 0 and $.
+"  Delete the leading " on the six lines below to restore.]
+" nnoremap H ^
+" nnoremap L $
+" vnoremap H ^
+" vnoremap L $
+" onoremap H ^
+" onoremap L $
 
 " ═══════════════════════════════════════════════════════════════════════════
 "  CONTROL CHORDS — the reason Control went back on the home row
@@ -145,3 +153,57 @@ nnoremap <leader>t ggdGi
 
 " Select the whole buffer.
 nnoremap <leader>a ggVG
+
+" === appended by finish.sh — do not duplicate ===
+" ═══════════════════════════════════════════════════════════════════════════
+"  APPEND THIS TO THE BOTTOM of your existing Packages/User/.neovintageousrc
+"  Do not replace anything above — every line below is new.
+"
+"  These are the mappings that existed in VS Code but had no key in Sublime.
+"  Your LSP-clangd commands were palette-only; now they're on <leader>, on the
+"  same keys as VS Code's init.lua.
+"
+"  Checked for collisions against your current rc: none. Nothing here starts
+"  with <leader>d, <leader>b, <leader>t, <leader>v, <leader>s, <leader>h,
+"  <leader>w, <leader>q, <leader>x, <leader>a, <leader>j or <leader>k, so
+"  every one of your existing maps still fires on the first keystroke.
+" ═══════════════════════════════════════════════════════════════════════════
+
+" ── Small additions ────────────────────────────────────────────────────────
+" Q replays macro q instead of opening Ex mode, which nobody wants.
+nnoremap Q @q
+" Close every open file. Pairs with your <leader>q.
+nnoremap <leader>Q :CloseAll<CR>
+
+" ── Files and search ───────────────────────────────────────────────────────
+" Space Space — file picker. Two taps for the thing you do most.
+nnoremap <leader><leader> :ShowOverlay overlay=goto show_files=true<CR>
+nnoremap <leader>ff :ShowOverlay overlay=goto show_files=true<CR>
+nnoremap <leader>fg :ShowPanel panel=find_in_files<CR>
+nnoremap <leader>fs :ShowOverlay overlay=goto text=@<CR>
+nnoremap <leader>fS :GotoSymbolInProject<CR>
+nnoremap <leader>e :ToggleSideBar<CR>
+
+" ── LSP / clangd — these had no keybinding at all before ───────────────────
+nnoremap <leader>fm :LspFormatDocument<CR>
+nnoremap <leader>rn :LspSymbolRename<CR>
+nnoremap <leader>ca :LspCodeActions<CR>
+vnoremap <leader>ca :LspCodeActions<CR>
+nnoremap <leader>li :LspSymbolImplementation<CR>
+nnoremap <leader>lt :LspSymbolTypeDefinition<CR>
+nnoremap ]d :LspNextDiagnostic<CR>
+nnoremap [d :LspPrevDiagnostic<CR>
+
+" ── Git gutter navigation — NOT mapped, on purpose ─────────────────────────
+" NeoVintageous already implements ]c and [c natively (forward/backward to
+" start of change). Overriding them would only replace a working built-in
+" with a slightly different one. VS Code's init.lua maps them to the same
+" thing, so the keys match anyway.
+
+" ═══════════════════════════════════════════════════════════════════════════
+"  NOT added, deliberately — Sublime has no such feature, so there is no
+"  habit to lose: debugging, source-control view, integrated terminal,
+"  notebooks. In VS Code those live on the ⌘ layer (⌘B, ⌘⇧D, ⌘;, ⌘K D,
+"  ⌘K T, ⌘⇧G), never on <leader>, precisely so <leader>d stays a
+"  black-hole-delete operator in both editors.
+" ═══════════════════════════════════════════════════════════════════════════

@@ -13,6 +13,9 @@
 #  Reload after editing:  ⌘⇧,
 # ═══════════════════════════════════════════════════════════════════
 
+# Font Family
+font-family = JetBrainsMono Nerd Font Mono
+theme = Monokai Pro
 
 # Closing a Ghostty window no longer loses anything — your tmux
 # session keeps running in the background and `tmux a` brings it

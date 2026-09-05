@@ -1,5 +1,5 @@
-# cp-portable — exported 2026-08-17 22:11
-# macOS 26.5.2; username deliberately not recorded
+# cp-portable — exported 2026-09-05 20:48
+# macOS 26.6.2; username deliberately not recorded
 # sha256(16)  bytes  path
 9f7b4a03319f9a90  2006  payload/clangd/config.yaml
 949b7f882b079133  740  payload/cpdir/algo/cp.cpp
@@ -8,7 +8,7 @@
 f2c9b7b6dc60c12c  3812  payload/dotcp/.cp/judge.sh
 bc57741e57d86d59  1362  payload/dotcp/.cp/run-term.sh
 0f186665ce1045f3  1879  payload/dotcp/.cp/stress.sh
-8620b3bb36a4a77e  8128  payload/sublime-user/.neovintageousrc
+b345ad8868ef78a9  12381  payload/sublime-user/.neovintageousrc
 6e114064de4bd449  2317  payload/sublime-user/C++ CP.sublime-build
 7b1b4048a4a1fec7  220  payload/sublime-user/cp-expand.sublime-macro
 97c03fc53b87aeec  939  payload/sublime-user/cp-template.sublime-snippet

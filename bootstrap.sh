@@ -95,6 +95,7 @@ fi
 
 hdr "5b  Editors and CLI tools"
 put nvim              "$HOME/.config/nvim"
+put doom              "$HOME/.config/doom"
 put clang-format/.clang-format "$HOME/.clang-format"
 put gh/config.yml     "$HOME/.config/gh/config.yml"
 put ripgrep/.ripgreprc "$HOME/.ripgreprc"
@@ -117,6 +118,36 @@ if [ -f "$D/karabiner/karabiner.json" ]; then
   fi
 else
   sk "no karabiner.json in repo"
+fi
+
+hdr "5c3  npm globals"
+if command -v npm >/dev/null && [ -f "$D/npm/global-packages.txt" ]; then
+  echo "  installing $(wc -l <"$D/npm/global-packages.txt" | tr -d ' ') global packages…"
+  xargs npm i -g < "$D/npm/global-packages.txt" >/dev/null 2>&1 && ok "npm globals"
+else
+  sk "npm globals — npm missing or no list in repo"
+fi
+
+hdr "5d  Doom Emacs"
+# Doom is a git clone, same as TPM. The config in doom/ is yours; Doom itself
+# is not vendored. Without this step ~/.config/doom sits there doing nothing.
+if [ -d "$HOME/.config/doom" ]; then
+  if [ ! -d "$HOME/.config/emacs" ]; then
+    git clone -q --depth 1 https://github.com/doomemacs/doomemacs "$HOME/.config/emacs" \
+      && ok "cloned Doom"
+  else ok "Doom already present"; fi
+  if [ -d "$HOME/.config/emacs" ]; then
+    echo "  running doom install — several minutes"
+    "$HOME/.config/emacs/bin/doom" install --force && ok "doom install"
+    echo
+    echo "      Then, inside Emacs, once:"
+    echo "          M-x nerd-icons-install-fonts"
+    echo "          M-x pdf-tools-install"
+    echo "      And symlink the app so it's launchable:"
+    echo "          ln -s /opt/homebrew/opt/emacs-plus@31/Emacs.app /Applications/Emacs.app"
+  fi
+else
+  sk "no doom/ in repo"
 fi
 
 hdr "6  Sublime CP setup"

@@ -22,6 +22,11 @@ say(){ printf '      %s\n' "$1"; }
 # Keywords, not bundle IDs. Bundle IDs are easy to get wrong from memory
 # (com.knollsoft.Rectangle vs com.knollsoft.Hookshot for Pro), so instead we
 # match these against the real domain list on this machine. Add your own.
+# Domains that match a keyword but are not settings. Apple's telemetry
+# matches "stats"; Raycast and the *.usage/*.license domains are runtime
+# state that churns on every run and drowns real changes in the diff.
+SKIP_RE="com\\.apple\\.|\\.usage$|\\.license$|raycast"
+
 KEYWORDS="rectangle alt-tab alttab linearmouse raycast maccy karabiner hiddenbar
 minimalbar shottr stats iina rcmd swish bettertouchtool aerospace amethyst
 yabai skhd monitorcontrol appcleaner keka itsycal"
@@ -44,6 +49,7 @@ export)
   for kw in $KEYWORDS; do
     while IFS= read -r dom; do
       [ -z "$dom" ] && continue
+      printf %s "$dom" | grep -qE "$SKIP_RE" && continue
       # -; writes XML to stdout, so we control the filename and can diff it
       if defaults export "$dom" - > "$OUT/$dom.plist" 2>/dev/null && [ -s "$OUT/$dom.plist" ]; then
         ok "$dom  ($(wc -c <"$OUT/$dom.plist" | tr -d ' ') bytes)"
