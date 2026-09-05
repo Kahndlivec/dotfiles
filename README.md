@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="assets/gnu.png" width="400" alt="GNU meditating over a toppled CRT">
+</p>
 # dotfiles
 
 macOS setup for a maths student who does competitive programming, C++ and ML
@@ -41,24 +44,24 @@ exists.
 
 ## Layout
 
-| Path | What |
-|---|---|
-| `Brewfile` | every formula and cask — regenerated on each collection run |
-| `doom/` | Doom Emacs: `init.el`, `config.el`, `packages.el`, `+cp.el`, the CP template and snippet, plus `CHECKLIST.md`, `SETUP.md`, `REMOTE.md` |
-| `nvim/` | Neovim `init.lua` and `lazy-lock.json` |
-| `vscode/` | settings, keybindings, snippets, `extensions.txt` |
-| `sublime/` | self-installing CP setup, kept from before CP moved into Emacs |
-| `ghostty/config` | terminal |
-| `tmux/` | tmux config; TPM is re-cloned by bootstrap, `prefix + I` installs plugins |
-| `zsh/.zshrc` | shell: PATH, `e`/`et`/`eh`, the CP shell fallbacks |
-| `npm/global-packages.txt` | pyright, bash-language-server, Claude CLI — invisible to Homebrew |
-| `scripts/` | the collector, plus the Emacs and homelab setup scripts |
-| `karabiner/`, `hhkb/` | keyboard remaps and layout notes |
-| `macos/defaults.sh` | key repeat, Dock, Finder, trackpad, hot corners, screenshots |
-| `macos/prefs/` | plists for apps with no config file (Rectangle, AltTab, LinearMouse) |
-| `git/`, `gh/`, `clang-format/`, `starship/` | the small ones |
-| `ssh/` | `config`, `known_hosts`, `*.pub` — **never private keys** |
-| `apps/apps.md` | generated: which apps Homebrew restores and which are manual |
+| Path                                        | What                                                                                                                                   |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `Brewfile`                                  | every formula and cask — regenerated on each collection run                                                                            |
+| `doom/`                                     | Doom Emacs: `init.el`, `config.el`, `packages.el`, `+cp.el`, the CP template and snippet, plus `CHECKLIST.md`, `SETUP.md`, `REMOTE.md` |
+| `nvim/`                                     | Neovim `init.lua` and `lazy-lock.json`                                                                                                 |
+| `vscode/`                                   | settings, keybindings, snippets, `extensions.txt`                                                                                      |
+| `sublime/`                                  | self-installing CP setup, kept from before CP moved into Emacs                                                                         |
+| `ghostty/config`                            | terminal                                                                                                                               |
+| `tmux/`                                     | tmux config; TPM is re-cloned by bootstrap, `prefix + I` installs plugins                                                              |
+| `zsh/.zshrc`                                | shell: PATH, `e`/`et`/`eh`, the CP shell fallbacks                                                                                     |
+| `npm/global-packages.txt`                   | pyright, bash-language-server, Claude CLI — invisible to Homebrew                                                                      |
+| `scripts/`                                  | the collector, plus the Emacs and homelab setup scripts                                                                                |
+| `karabiner/`, `hhkb/`                       | keyboard remaps and layout notes                                                                                                       |
+| `macos/defaults.sh`                         | key repeat, Dock, Finder, trackpad, hot corners, screenshots                                                                           |
+| `macos/prefs/`                              | plists for apps with no config file (Rectangle, AltTab, LinearMouse)                                                                   |
+| `git/`, `gh/`, `clang-format/`, `starship/` | the small ones                                                                                                                         |
+| `ssh/`                                      | `config`, `known_hosts`, `*.pub` — **never private keys**                                                                              |
+| `apps/apps.md`                              | generated: which apps Homebrew restores and which are manual                                                                           |
 
 ## Doom Emacs
 
@@ -141,7 +144,7 @@ seconds on a new machine. For genuine key portability, encrypt first (`age`,
 
 Everything is ignored until explicitly un-ignored. A blacklist only protects
 against leaks you thought of in advance; with an allowlist, the cost of
-forgetting is a file that *didn't* get committed rather than a key that did.
+forgetting is a file that _didn't_ get committed rather than a key that did.
 Adding a new config type means adding one `!` line.
 
 This has bitten before: `*.el` wasn't on the list, so the entire Doom config
