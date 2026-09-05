@@ -70,6 +70,8 @@
 # /** for anything nested.
 !hhkb/*
 !hhkb/**
+!assets/*
+!assets/**
 !docs/*
 !docs/**
 !karabiner/assets/*
