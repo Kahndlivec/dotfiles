@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/gnu.png" width="400" alt="GNU meditating over a toppled CRT">
+  <img src="assets/GNU.png" width="400" alt="GNU meditating over a toppled CRT">
 </p>
 # dotfiles
 
