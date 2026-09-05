@@ -1,6 +1,7 @@
 <p align="center">
   <img src="assets/GNU.jpg" width="400" alt="GNU meditating over a toppled CRT">
 </p>
+
 # dotfiles
 
 macOS setup for a maths student who does competitive programming, C++ and ML
