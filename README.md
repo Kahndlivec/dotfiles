@@ -20,7 +20,7 @@ address — none of them credentials, none of them worth publishing either.
 ```bash
 xcode-select --install
 git clone https://github.com/Kahndlivec/dotfiles ~/dotfiles
-cd ~/dotfiles && bash bootstrap.sh
+cd ~/Documents/dotfiles && bash bootstrap.sh
 ```
 
 Installs Homebrew, runs `brew bundle`, copies every config into place, installs
