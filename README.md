@@ -19,7 +19,7 @@ address — none of them credentials, none of them worth publishing either.
 
 ```bash
 xcode-select --install
-git clone <this repo> ~/dotfiles
+git clone https://github.com/Kahndlivec/dotfiles ~/dotfiles
 cd ~/dotfiles && bash bootstrap.sh
 ```
 
