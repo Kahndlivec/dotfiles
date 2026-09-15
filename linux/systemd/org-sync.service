@@ -1,0 +1,7 @@
+[Unit]
+Description=Sync org notes
+Documentation=https://github.com/Kahndlivec/dotfiles
+
+[Service]
+Type=oneshot
+ExecStart=%h/bin/org-sync

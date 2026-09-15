@@ -124,3 +124,36 @@ macos/prefs/com.apple.*
 macos/prefs/com.raycast.macos.plist
 macos/prefs/*.usage.plist
 macos/prefs/*.license.plist
+# ═══════════════════════════════════════════════════════════════════
+#  Append these to .gitignore.
+#
+#  Your .gitignore is an allowlist — everything is ignored until it is
+#  explicitly un-ignored. None of the new directories will commit
+#  without these lines, and they'll fail silently, exactly like *.el
+#  did before.
+#
+#  Check it worked:  git status --porcelain | head
+#  and:              git check-ignore -v linux/setup.sh   (should print nothing)
+# ═══════════════════════════════════════════════════════════════════
+
+# --- linux restructure ---
+!linux/
+!linux/**
+!shared/
+!shared/**
+!macos/
+!macos/**
+!docs/
+!docs/**
+
+# file types the new tree introduces
+!*.conf
+!*.service
+!*.timer
+!bootstrap.sh
+!gitignore-additions.txt
+
+# shared/bin/org-sync has no extension — same trap as
+# doom/snippets/c++-mode/cp
+!bin/
+!bin/*

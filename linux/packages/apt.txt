@@ -1,0 +1,104 @@
+# ═══════════════════════════════════════════════════════════════════
+#  linux/packages/apt.txt
+#
+#  One package per line. '#' comments and blank lines are stripped by
+#  linux/setup.sh. Lines ending in '  # thinkpad' are installed only
+#  when ROLE=thinkpad.
+# ═══════════════════════════════════════════════════════════════════
+
+# ─── build / toolchain ─────────────────────────────────────────────
+build-essential
+cmake
+automake
+libtool
+pkg-config
+gdb
+valgrind
+clang
+clangd
+lld
+lldb
+python3-venv
+pipx
+
+# ─── cli (direct Brewfile ports) ───────────────────────────────────
+git
+git-delta
+gh
+ripgrep
+fd-find
+fzf
+bat
+eza
+zoxide
+jq
+direnv
+shellcheck
+shfmt
+pandoc
+ghostscript
+poppler-utils
+tmux
+btop
+tree
+ncdu
+rsync
+unzip
+wakeonlan
+wl-clipboard
+xclip
+
+# ─── shell ─────────────────────────────────────────────────────────
+zsh
+zsh-autosuggestions
+zsh-syntax-highlighting
+
+# ─── editors ───────────────────────────────────────────────────────
+emacs-pgtk
+neovim
+
+# pdf-tools compiles epdfinfo on Linux; these are its build deps.
+libpoppler-glib-dev
+libpng-dev
+zlib1g-dev
+imagemagick
+
+# ─── terminal ──────────────────────────────────────────────────────
+ghostty
+
+# ─── pdf reading (vertical iiyama) ─────────────────────────────────
+zathura
+zathura-pdf-mupdf
+
+# ─── latex ─────────────────────────────────────────────────────────
+texlive-latex-recommended
+texlive-latex-extra
+texlive-fonts-extra
+texlive-lang-european
+latexmk
+biber
+
+# ─── fonts ─────────────────────────────────────────────────────────
+fonts-inter
+fonts-ibm-plex
+
+# ─── desktop ───────────────────────────────────────────────────────
+gnome-tweaks
+dconf-editor
+gnome-shell-extension-manager
+flatpak
+gnome-software-plugin-flatpak
+solaar
+
+# ─── system ────────────────────────────────────────────────────────
+ufw
+unattended-upgrades
+timeshift
+fwupd
+
+# ─── thinkpad only ─────────────────────────────────────────────────
+keyd  # thinkpad
+evtest  # thinkpad
+tlp  # thinkpad
+tlp-rdw  # thinkpad
+powertop  # thinkpad

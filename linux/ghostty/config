@@ -1,0 +1,31 @@
+# ═══════════════════════════════════════════════════════════════════
+#  ~/.config/ghostty/config  —  Linux
+#
+#  tmux still owns splits, tabs and sessions. Ghostty is a fast plain
+#  window. Reload after editing:  ctrl+shift+,
+#
+#  Your keyboard here:
+#    ctrl   caps lock, pinky  ->  tmux leader (ctrl+space) and vim
+#    super  bottom-left       ->  GNOME: workspaces, tiling, overview
+#    alt    -> Meta natively. No macos-option-as-alt hack needed.
+# ═══════════════════════════════════════════════════════════════════
+
+font-family = JetBrainsMono Nerd Font Mono
+theme = Monokai Pro
+
+confirm-close-surface = false
+
+# LINUX: GNOME draws a title bar Ghostty doesn't need. The GTK tab bar
+# merges tabs into the header instead.
+gtk-titlebar = true
+window-decoration = true
+
+# LINUX: on Wayland, Ghostty's default blur/transparency can tank frame
+# times on the iGPU ThinkPads. Left off deliberately.
+
+# ─── Built in, no config needed ────────────────────────────────────
+#   ctrl+shift+n   new window       ctrl+shift+f  search scrollback
+#   ctrl+shift+c/v copy / paste     ctrl+shift+,  reload this file
+#   ctrl+= ctrl+- ctrl+0            font size
+#
+# ctrl+shift+d still makes Ghostty splits — ignore them, use tmux panes.

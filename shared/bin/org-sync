@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════════
+#  shared/bin/org-sync  ->  ~/bin/org-sync
+#
+#  Commit, rebase, push ~/Documents/notes. Driven by the systemd timer
+#  (every 10 min) and by after-save-hook in Doom.
+#
+#  It never resolves a conflict itself. Silently picking a side is how
+#  you lose a note — so it stops and tells you instead.
+# ═══════════════════════════════════════════════════════════════════
+set -euo pipefail
+
+NOTES="${ORG_NOTES_DIR:-$HOME/Documents/notes}"
+[[ -d "$NOTES/.git" ]] || exit 0
+cd "$NOTES"
+
+# One at a time: the timer and the save hook can both fire. flock is
+# Linux-only; on anything else the lock is skipped rather than fatal.
+exec 9>"/tmp/org-sync.$(id -u).lock"
+flock -n 9 2>/dev/null || exit 0
+
+notify() {
+  if command -v notify-send >/dev/null; then
+    notify-send -u critical "org-sync" "$1"
+  elif command -v osascript >/dev/null; then
+    osascript -e "display notification \"$1\" with title \"org-sync\""
+  else
+    echo "org-sync: $1" >&2
+  fi
+}
+
+git add -A
+git diff --cached --quiet || \
+  git commit -q -m "sync: $(hostname -s) $(date -Iminutes)"
+
+if ! git pull --rebase --autostash -q; then
+  notify "rebase conflict in $NOTES — resolve by hand (SPC g in Doom)"
+  exit 1
+fi
+
+if ! git push -q; then
+  notify "push failed — offline, or the remote moved again"
+  exit 1
+fi

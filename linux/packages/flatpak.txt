@@ -1,0 +1,12 @@
+# linux/packages/flatpak.txt — Flathub app IDs, one per line.
+
+org.keepassxc.KeePassXC
+com.spotify.Client
+org.telegram.desktop
+com.github.ahrm.sioyek
+com.github.tchx84.Flatseal
+
+# Dropped from the Brewfile, deliberately:
+#   md.obsidian.Obsidian   -> org-mode is the note system now
+#   dev.neovide.neovide    -> nvim is a terminal fallback, doesn't need a GUI
+#   Sublime Text           -> gone

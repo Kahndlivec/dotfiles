@@ -1,0 +1,31 @@
+# ═══════════════════════════════════════════════════════════════════
+#  ~/.ssh/config  —  Linux
+#
+#  LINUX: `UseKeychain yes` is removed. It is a macOS-only option; on
+#  Linux OpenSSH it is a hard parse error and every ssh/scp/git call
+#  fails with "Bad configuration option". It appeared twice in the
+#  macOS file.
+#
+#  LINUX: ControlPath needs its directory to exist. linux/setup.sh
+#  creates ~/.ssh/cm.
+# ═══════════════════════════════════════════════════════════════════
+
+Host *
+    ControlMaster auto
+    ControlPath ~/.ssh/cm/%r@%h:%p
+    ControlPersist 10m
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    AddKeysToAgent yes
+    IdentityFile ~/.ssh/id_ed25519
+
+Host tower homelab
+    HostName khandlab.tailf80156.ts.net
+    User khand
+    # TRAMP parses the remote shell prompt; a TTY confuses it.
+    RequestTTY no
+
+Host tower-lan homelab-lan
+    HostName 192.168.99.250
+    User khand
+    RequestTTY no
