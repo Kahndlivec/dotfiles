@@ -68,7 +68,7 @@ ghostty
 
 # ─── pdf reading (vertical iiyama) ─────────────────────────────────
 zathura
-zathura-pdf-mupdf
+zathura-pdf-poppler
 
 # ─── latex ─────────────────────────────────────────────────────────
 texlive-latex-recommended
