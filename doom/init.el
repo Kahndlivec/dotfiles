@@ -74,7 +74,6 @@
        ;; OFF: docker (add if you start managing homelab containers from here)
 
        :os
-       (:if (featurep :system 'macos) macos)
 
        :lang
        (cc +lsp +tree-sitter)

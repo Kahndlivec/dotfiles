@@ -42,7 +42,7 @@
 ;; Long lines (minified JSON, a 200k-char test case) would otherwise hang Emacs.
 (global-so-long-mode 1)
 
-;; Smooth trackpad scrolling on macOS.
+;; Smooth pixel scrolling (touchpad and high-res mouse wheels).
 (when (fboundp 'pixel-scroll-precision-mode)
   (pixel-scroll-precision-mode 1))
 
@@ -264,9 +264,7 @@ the entry here.")
       doom-big-font (font-spec :family "JetBrainsMono Nerd Font" :size 22)
       doom-variable-pitch-font (font-spec :family "Inter" :size 16))
 
-;; No `doom-serif-font'. And do NOT reach for "SF Pro" or "New York" here:
-;; those are macOS *system* fonts — the UI can use them, but they aren't
-;; installed as ordinary font families, so Emacs can't find them by name.
+;; No `doom-serif-font'. Only name fonts that `fc-list' actually shows.
 ;; A font Emacs can't resolve throws during `after-init-hook', which aborts
 ;; the rest of that hook — including theme application. Symptom: Emacs comes
 ;; up white with no theme, and nothing in your config appears to have loaded.
@@ -287,8 +285,8 @@ the entry here.")
 
 (defun +my/center-frame (&optional frame)
   "Centre FRAME on the monitor it is currently displayed on.
-Uses the monitor workarea rather than the raw screen size, so the menu bar
-and Dock are accounted for, and multi-monitor setups land on the right
+Uses the monitor workarea rather than the raw screen size, so GNOME's top
+bar and the dock are accounted for, and multi-monitor setups land on the right
 screen instead of halfway between two."
   (interactive)
   (let* ((frame (or frame (selected-frame)))
@@ -381,7 +379,7 @@ screen instead of halfway between two."
 ;; Two constraints drive everything here:
 ;;   1. Muscle memory from nvim should transfer. Anything you already press
 ;;      there should do the same thing here.
-;;   2. HHKB reality: no ⌥ bindings, no F-keys, and nothing that makes the
+;;   2. HHKB reality: no Alt bindings, no F-keys, and nothing that makes the
 ;;      right pinky stretch to 0 / - / = / \.
 
 ;; --- window movement --------------------------------------------------
@@ -423,8 +421,8 @@ screen instead of halfway between two."
       :desc "Undo window layout"     "w u" #'winner-undo
       :desc "Redo window layout"     "w U" #'winner-redo)
 
-;; --- staying off ⌥ ----------------------------------------------------
-;; Emacs leans on Meta constantly and you've ruled ⌥ out. The escape hatches:
+;; --- staying off Alt ----------------------------------------------------
+;; Emacs leans on Meta constantly and you've ruled Alt out. The escape hatches:
 ;;
 ;;   M-x           ->  SPC :        (run any command)
 ;;   M-:           ->  SPC ;        (eval an elisp expression)
@@ -553,7 +551,8 @@ screen instead of halfway between two."
         org-download-image-dir +notes-attachments-dir
         org-download-heading-lvl nil
         org-download-timestamp "%Y%m%d-%H%M%S-"
-        org-download-screenshot-method "screencapture -i %s"  ; macOS built-in
+        ;; GNOME/Wayland: PrtSc → select area → it's on the clipboard, then
+        ;; `SPC n v' (org-download-clipboard) pastes it via wl-paste.
         org-download-display-inline-images 'posframe))
 
 (map! :leader
@@ -566,7 +565,6 @@ screen instead of halfway between two."
        :desc "Find note"               "f" #'consult-denote-find
        :desc "Search notes"            "s" #'consult-denote-grep
        :desc "Paste image"             "v" #'org-download-clipboard
-       :desc "Screenshot -> note"      "V" #'org-download-screenshot
        :desc "Agenda"                  "a" #'org-agenda
        :desc "Capture"                 "c" #'org-capture))
 
@@ -703,42 +701,26 @@ screen instead of halfway between two."
 
 
 ;;; ---------------------------------------------------------------------
-;;; 9. macOS, and the server
+;;; 9. The server, and PATH
 ;;; ---------------------------------------------------------------------
-;; Run the Emacs server inside the normal GUI Emacs you launch from the Dock.
-;; That one process is then both your editor and what `emacsclient' connects
-;; to, so `e file.cpp' in a terminal opens a buffer in the session you're
-;; already looking at.
-;;
-;; This is instead of a separate `brew services' daemon. A daemon plus a
-;; Dock-launched Emacs.app gives you TWO independent Emacsen with different
-;; buffers, which is confusing and buys nothing. Guarded on `daemonp' so it
-;; stays correct if you ever do switch to a daemon later.
+;; Run the Emacs server inside the normal GUI Emacs (Super+E launches or raises
+;; it). That one process is then both your editor and what `emacsclient'
+;; connects to, so `e file.cpp' in a terminal opens a buffer in the session
+;; you're already looking at. No separate systemd daemon: a daemon plus a
+;; launched Emacs gives you TWO independent Emacsen with different buffers.
+;; Guarded on `daemonp' so it stays correct if you ever switch to a daemon.
 (unless (daemonp)
   (require 'server)
   (unless (server-running-p)
     (server-start)))
 
-;;; ---------------------------------------------------------------------
-(when (eq system-type 'darwin)
-  ;; Keep ⌘ as super so Doom's +bindings give you ⌘c/⌘v/⌘s natively.
-  ;; ⌥ is mapped to Meta but nothing in this config binds it — see section 3b.
-  ;; Right ⌥ is left alone entirely so it still types special characters.
-  (setq mac-command-modifier 'super
-        mac-option-modifier  'meta
-        mac-right-option-modifier 'none)
-  ;; Emacs launched by launchd doesn't inherit your shell PATH.
-  (setq exec-path-from-shell-arguments '("-l"))
-  ;; /Library/TeX/texbin is the one people always miss: MacTeX installs
-  ;; there, not into Homebrew, and a GUI Emacs launched from the Dock has a
-  ;; minimal PATH. Symptom is org LaTeX previews failing with "the .dvi
-  ;; wasn't produced", which reads like a dvisvgm problem and isn't.
-  (dolist (p '("/opt/homebrew/bin" "/opt/homebrew/sbin"
-               "/Library/TeX/texbin"
-               "~/.local/bin" "~/.npm-global/bin"))
-    (let ((dir (expand-file-name p)))
-      (when (file-directory-p dir)
-        (add-to-list 'exec-path dir)
+;; GNOME gets PATH from ~/.config/environment.d (install.sh writes it), but
+;; belt and braces: make sure the user-level bin dirs are visible to GUI Emacs.
+(dolist (p '("~/.local/bin" "~/.npm-global/bin" "~/.config/emacs/bin"))
+  (let ((dir (expand-file-name p)))
+    (when (file-directory-p dir)
+      (add-to-list 'exec-path dir)
+      (unless (string-match-p (regexp-quote dir) (or (getenv "PATH") ""))
         (setenv "PATH" (concat dir ":" (getenv "PATH")))))))
 
 
@@ -837,8 +819,8 @@ translation unit — without it, LSP in a real C++ project is guesswork."
           "/usr/include" "/usr/local/include/*")))
 
 ;; --- debugging --------------------------------------------------------
-;; dape speaks DAP directly. For C++ it drives lldb-dap (ships with Homebrew
-;; LLVM); for Python, debugpy. `M-x dape' prompts with the available configs
+;; dape speaks DAP directly. For C++ use its `gdb' config (GDB 14+ speaks DAP
+;; natively, no adapter to install); for Python, debugpy. `M-x dape' prompts with the available configs
 ;; rather than needing you to hand-write launch.json equivalents.
 (use-package! dape
   :defer t
@@ -891,3 +873,8 @@ translation unit — without it, LSP in a real C++ project is guesswork."
 ;;; 12. Competitive programming layer
 ;;; ---------------------------------------------------------------------
 (load! "+cp")
+
+;; Per-machine overrides (font size on the X13 vs the 4K desktop, etc.).
+;; Not tracked in git — see .gitignore.
+(let ((local (expand-file-name "+local.el" doom-user-dir)))
+  (when (file-exists-p local) (load local nil t)))

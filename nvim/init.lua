@@ -20,7 +20,7 @@
 --  One file, two hosts: everything branches on `vim.g.vscode`, so the same
 --  keys work in VS Code's Neovim extension and in standalone nvim.
 --
---  HHKB rules held: no F-keys, no arrows, no Option bindings. Everything is
+--  HHKB rules held: no F-keys, no arrows, no Alt bindings. Everything is
 --  Control, leader, or a plain letter.
 -- ═══════════════════════════════════════════════════════════════════════════
 
@@ -73,8 +73,8 @@ opt.expandtab = true
 opt.smartindent = true
 
 -- ── Clipboard ──────────────────────────────────────────────────────────────
--- Locally, share the system clipboard. Over SSH, route copies through OSC 52
--- so a yank on the Linux box lands in the Mac clipboard. Paste falls back to
+-- Locally, share the system clipboard (wl-clipboard on Wayland). Over SSH, route copies through OSC 52
+-- so a yank on the remote box lands in this machine's clipboard. Paste falls back to
 -- the local register, because OSC 52 read is unreliable and usually disabled.
 opt.clipboard = "unnamedplus"
 
@@ -495,54 +495,26 @@ else
     --
     --  SPC c c   build and run against ./in.txt if present
     --  SPC c C   syntax check only, no link
-    --  SPC c s   build with sanitizers (clang++ only — see below)
-    --  SPC c j   build with real g++ and the judge's debug macros
+    --  SPC c s   build with sanitizers (ASan + UBSan)
+    --  SPC c j   build with the judge's flags and libstdc++ debug macros
     --  SPC <CR>  same as SPC c c — the fast one for contests
     --
     --  The run window is reused, so repeated runs don't stack splits.
     -- ═══════════════════════════════════════════════════════════════════════
-    -- macOS has no <bits/stdc++.h>: it is a libstdc++ (GCC) extension and
-    -- Apple's toolchain ships libc++. Two independent consequences:
-    --
-    --   * clang++ needs the shim in ~/.local/include/bits to compile at all.
-    --   * clangd needs the same path, which is set globally in
-    --     ~/.config/clangd/config.yaml so it works in EVERY directory, not
-    --     only ones where :CpInit has been run.
-    --
-    -- Real GCC has the header itself and needs neither.
-    local CP_INCLUDE = vim.fn.expand("~/.local/include")
+    -- GCC on Linux ships <bits/stdc++.h> and full ASan/UBSan, so one compiler
+    -- does everything. clang++ is only used if you force it below.
+    --   "g++"      GCC (default)
+    --   "clang++"  clang, linking against the same libstdc++
+    local CP_COMPILER = "g++"
 
-    -- Which compiler builds C++:
-    --   "auto"     real Homebrew g++ if installed, else clang++
-    --   "g++"      force GCC (fails loudly if it isn't there)
-    --   "clang++"  force Apple clang
-    local CP_COMPILER = "auto"
-
-    -- Plain `g++` on macOS is Apple clang under another name, so the real one
-    -- has to be found by its versioned name.
-    local function real_gxx()
-        for _, v in ipairs({ "g++-16", "g++-15", "g++-14", "g++-13", "g++-12" }) do
-            if vim.fn.executable(v) == 1 then return v end
-        end
+    local function pick_compiler()
+        if vim.fn.executable(CP_COMPILER) == 1 then return CP_COMPILER end
+        vim.notify(CP_COMPILER .. " not found — sudo apt install build-essential",
+            vim.log.levels.ERROR)
         return nil
     end
 
-    local function pick_compiler()
-        if CP_COMPILER == "clang++" then return "clang++" end
-        local gxx = real_gxx()
-        if gxx then return gxx end
-        if CP_COMPILER == "g++" then
-            vim.notify("No real g++ found — run `brew install gcc`", vim.log.levels.ERROR)
-            return nil
-        end
-        return "clang++"
-    end
-
     local CXX_BASE = { "-std=c++20", "-O0", "-g", "-DLOCAL", "-Wall", "-Wextra" }
-    -- Homebrew GCC on Apple Silicon ships no libasan/libubsan — the sanitizer
-    -- runtimes are not supported on aarch64-apple-darwin, and linking dies
-    -- with "library not found for -lasan". So sanitizers are clang++ only,
-    -- and they live on their own key instead of being baked into every build.
     local CXX_SANITIZE = { "-fsanitize=address,undefined", "-fno-omit-frame-pointer" }
     local CXX_JUDGE = { "-std=c++20", "-O2", "-D_GLIBCXX_DEBUG", "-D_GLIBCXX_DEBUG_PEDANTIC" }
 
@@ -556,18 +528,11 @@ else
 
         local compiler, flags, run_it
         if mode == "sanitize" then
-            -- Always clang++: see the note above.
-            compiler, run_it = "clang++", true
+            compiler, run_it = pick_compiler(), true
             flags = vim.deepcopy(CXX_BASE)
             vim.list_extend(flags, CXX_SANITIZE)
         elseif mode == "judge" then
-            compiler, run_it = real_gxx(), true
-            if compiler == nil then
-                vim.notify("Judge mode needs real GCC — `brew install gcc`. "
-                    .. "Under clang the _GLIBCXX_DEBUG flags do nothing.",
-                    vim.log.levels.ERROR)
-                return
-            end
+            compiler, run_it = pick_compiler(), true
             flags = vim.deepcopy(CXX_JUDGE)
         elseif mode == "syntax" then
             compiler, run_it = pick_compiler(), false
@@ -578,12 +543,6 @@ else
             flags = vim.deepcopy(CXX_BASE)
         end
         if compiler == nil then return end
-
-        -- Only clang needs the shim; real GCC ships the header, and shadowing
-        -- it with ours would be a downgrade.
-        if compiler:match("clang") then
-            table.insert(flags, 1, "-I" .. CP_INCLUDE)
-        end
 
         vim.cmd("write")
         local src = vim.fn.expand("%:p")
@@ -613,8 +572,8 @@ else
     map("n", "<leader>cc", function() cpp_run("debug") end, { desc = "Build and run" })
     map("n", "<leader><CR>", function() cpp_run("debug") end, { desc = "Build and run" })
     map("n", "<leader>cC", function() cpp_run("syntax") end, { desc = "Compile only" })
-    map("n", "<leader>cs", function() cpp_run("sanitize") end, { desc = "Build with sanitizers (clang)" })
-    map("n", "<leader>cj", function() cpp_run("judge") end, { desc = "Build with judge g++" })
+    map("n", "<leader>cs", function() cpp_run("sanitize") end, { desc = "Build with sanitizers" })
+    map("n", "<leader>cj", function() cpp_run("judge") end, { desc = "Build with judge flags" })
     map("n", "<leader>cn", "ggdGi", { desc = "New solution (wipe buffer)" })
 
     -- clangd needs a dialect hint in a loose single-file CP directory.
@@ -622,7 +581,6 @@ else
         local path = vim.fn.expand("%:p:h") .. "/compile_flags.txt"
         vim.fn.writefile({
             "-std=c++20", "-DLOCAL", "-Wall", "-Wextra",
-            "-I" .. CP_INCLUDE,   -- so clangd stops flagging <bits/stdc++.h>
         }, path)
         vim.notify("Wrote " .. path .. " — now run :LspRestart")
     end, { desc = "Write compile_flags.txt for clangd here" })
@@ -631,7 +589,7 @@ else
     --  :Doctor — one command for everything that can fail silently
     --
     --  :checkhealth covers plugins that are loaded. This covers the rest:
-    --  external binaries, Mason packages, the macOS C++ shims, and the
+    --  external binaries, Mason packages, and the
     --  handful of things whose failure mode is "nothing happens".
     --  Also on SPC h D.
     -- ═══════════════════════════════════════════════════════════════════════
@@ -660,16 +618,11 @@ else
         end
 
         head("compilers")
-        local gxx = real_gxx()
-        row(gxx and "ok" or "warn", "real g++",
-            gxx or "brew install gcc — judge mode needs it")
-        need("clang++", "sanitizer builds (SPC c s)")
+        need("g++", "build, sanitizers, judge mode")
+        want("clangd", "C++ LSP")
         local chosen = pick_compiler()
         row(chosen and "ok" or "MISS", "SPC c c will use", tostring(chosen))
-
-        head("macOS C++ shims")
-        file("~/.local/include/bits/stdc++.h", "so clang++ can compile the include")
-        file("~/.config/clangd/config.yaml", "so clangd works in EVERY directory")
+        want("wl-copy", "system clipboard on Wayland")
 
         head("external tools")
         need("rg", "SPC s p — without it, search finds nothing")
@@ -772,8 +725,6 @@ else
         vim.g.neovide_scroll_animation_length = 0.15
         vim.g.neovide_padding_top, vim.g.neovide_padding_bottom = 4, 4
         vim.g.neovide_padding_left, vim.g.neovide_padding_right = 8, 8
-        -- Option stays a normal macOS Option so it still types ø, ∆, é.
-        vim.g.neovide_input_macos_option_key_is_meta = "none"
     end
 end
 

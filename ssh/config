@@ -1,33 +1,31 @@
+# ~/.ssh/config — copied (not symlinked) by install.sh, because ssh is
+# strict about permissions on this file.
+
+# The desktop tower, over Tailscale — use from the ThinkPad.
 Host khandlab
     HostName khandlab.tailf80156.ts.net
     User khand
 
-Host *
-  AddKeysToAgent yes
-  UseKeychain yes
-  IdentityFile ~/.ssh/id_ed25519
+# Same box for TRAMP: `/ssh:khandlab-tramp:~/`. TRAMP parses the remote
+# prompt, and a forced TTY confuses it.
+Host khandlab-tramp
+    HostName khandlab.tailf80156.ts.net
+    User khand
+    RequestTTY no
 
+Host khandlab-lan
+    HostName 192.168.99.250
+    User khand
 
-# ─── added for Doom Emacs / TRAMP ──────────────────────────────────
-# ControlMaster keeps one authenticated connection open per host and
-# reuses it. This is the single biggest factor in whether remote editing
-# feels instant or takes two seconds per keystroke.
+# Defaults for every host — kept last, since ssh takes the FIRST value it
+# sees for each option.
+# ControlMaster keeps one authenticated connection open per host and reuses
+# it. The single biggest factor in whether TRAMP editing feels instant.
 Host *
+    AddKeysToAgent yes
+    IdentityFile ~/.ssh/id_ed25519
     ControlMaster auto
     ControlPath ~/.ssh/cm/%r@%h:%p
     ControlPersist 10m
     ServerAliveInterval 30
     ServerAliveCountMax 3
-    AddKeysToAgent yes
-    UseKeychain yes
-
-Host homelab
-    HostName khandlab.tailf80156.ts.net
-    User khand
-    # TRAMP parses the remote shell prompt; a TTY confuses it.
-    RequestTTY no
-
-Host homelab-lan
-    HostName 192.168.99.250
-    User khand
-    RequestTTY no

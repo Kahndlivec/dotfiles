@@ -1,0 +1,76 @@
+# Ubuntu packages — installed by install.sh. One per line, # comments ok.
+# Names that don't exist on this release are skipped with a warning, not fatal.
+
+# ── shell & terminal ────────────────────────────────────────────────
+zsh
+zsh-autosuggestions
+zsh-syntax-highlighting
+tmux
+ncurses-term            # tmux-256color terminfo
+wl-clipboard            # wl-copy / wl-paste: nvim, tmux, org-download
+
+# ── core CLI ────────────────────────────────────────────────────────
+git
+git-lfs
+gh
+curl
+wget
+gpg
+ca-certificates
+unzip
+xz-utils
+fontconfig
+ripgrep
+fd-find                 # binary is fdfind; install.sh links ~/.local/bin/fd
+fzf
+jq
+btop
+direnv
+lazygit
+wakeonlan
+diceware
+openssh-client
+
+# ── C / C++ ─────────────────────────────────────────────────────────
+build-essential         # gcc, g++, make — CP and real projects
+gdb                     # speaks DAP natively → dape in Emacs
+clangd
+clang-format
+cmake
+ninja-build
+
+# ── build deps: Emacs pdf-tools and vterm ───────────────────────────
+autoconf
+automake
+libtool-bin
+pkgconf
+libpoppler-glib-dev
+libpoppler-private-dev
+libpng-dev
+zlib1g-dev
+libvterm-dev
+
+# ── documents ───────────────────────────────────────────────────────
+pandoc
+ghostscript
+poppler-utils
+
+# ── languages & linters ─────────────────────────────────────────────
+python3
+python3-venv
+python3-pip
+pipx
+nodejs
+npm
+shellcheck
+shfmt
+
+# ── editors ─────────────────────────────────────────────────────────
+emacs-pgtk              # native Wayland build; crisp on scaled 4K
+# neovim comes from the GitHub release (apt's is too old for the config)
+
+# ── apps ────────────────────────────────────────────────────────────
+keepassxc
+
+# ── fonts ───────────────────────────────────────────────────────────
+fonts-inter             # doom-variable-pitch-font

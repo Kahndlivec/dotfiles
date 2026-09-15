@@ -1,8 +1,9 @@
 {
   // ═══════════════════════════════════════════════════════════════════════
-  //  VS Code settings.json — port of your Sublime Preferences.sublime-settings
-  //  Target: ML / math / web / general dev. NOT competitive programming.
-  //  Vim layer: vscode-neovim (real Neovim embedded).
+  //  VS Code settings.json  →  ~/.config/Code/User/settings.json (symlink)
+  //  Target: agency frontend (TS/JSX/HTML) + heavy AI-agent work. Everything
+  //  else lives in Doom Emacs. Vim layer: vscode-neovim (real Neovim embedded),
+  //  and SPC-leader commands come from the vim.g.vscode branch of nvim/init.lua.
   //
   //  Sections marked [PORT] are your Sublime setting, translated.
   //  Sections marked [NEW]  have no Sublime equivalent — they exist because
@@ -11,9 +12,8 @@
   // ═══════════════════════════════════════════════════════════════════════
 
   // ── NEOVIM ─────────────────────────────────────────────────────────────
-  // [NEW] Path to the nvim binary. Apple Silicon Homebrew installs here.
-  // Intel Macs: "/usr/local/bin/nvim". Verify with `which nvim`.
-  "vscode-neovim.neovimExecutablePaths.darwin": "/opt/homebrew/bin/nvim",
+  // nvim is found on PATH (~/.local/bin/nvim, installed by install.sh and
+  // exported to GNOME via ~/.config/environment.d), so no path is set here.
 
   // Give the extension its own extension host process. Without this,
   // every keystroke queues behind other extensions and Vim feels laggy.
@@ -39,7 +39,7 @@
   "workbench.iconTheme": "material-icon-theme",
 
   // [PORT] font_face / font_size
-  "editor.fontFamily": "'JetBrainsMono Nerd Font Mono', 'JetBrains Mono', Menlo, monospace",
+  "editor.fontFamily": "'JetBrainsMono Nerd Font Mono', 'JetBrains Mono', monospace",
   "editor.fontSize": 14,
   "editor.fontLigatures": true,
 
@@ -206,7 +206,6 @@
   // Python/ML/JS instead of CP binaries.
   "files.exclude": {
     "**/.git": true,
-    "**/.DS_Store": true,
     "**/__pycache__": true,
     "**/*.pyc": true,
     "**/.pytest_cache": true,
@@ -222,7 +221,7 @@
   },
 
   // Searched-but-not-hidden: you still want these in the tree, just not in
-  // ⌘P results or find-in-files.
+  // Ctrl+P results or find-in-files.
   "search.exclude": {
     "**/node_modules": true,
     "**/.venv": true,
@@ -337,13 +336,9 @@
   },
 
   // ── C++ ────────────────────────────────────────────────────────────────
-  // SKIP THIS WHOLE SECTION if you don't write C++ in VS Code — you said CP
-  // stays in Sublime, so this may be dead weight. Delete the six clangd/C_Cpp
-  // lines and keep only the "[cpp]" tabSize if so.
-  //
-  // Otherwise: clangd instead of Microsoft's IntelliSense. This is the one
-  // clearly-right call on the second-opinion list. Same engine your Sublime
-  // LSP-clangd already uses, so diagnostics match between the two editors.
+  // C++ normally lives in Emacs; this is for the odd file opened here.
+  // clangd instead of Microsoft's IntelliSense — same engine Emacs (eglot)
+  // uses, so diagnostics match between the two editors.
   //
   // The two engines fight if both are live, so IntelliSense goes off. Note
   // you KEEP ms-vscode.cpptools installed — clangd has no debugger, and
@@ -394,7 +389,7 @@
   // ── TERMINAL & GIT ─────────────────────────────────────────────────────
   "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font', monospace",
   "terminal.integrated.fontSize": 13,
-  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.defaultProfile.linux": "zsh",
   "terminal.integrated.cursorBlinking": false,
   "terminal.integrated.scrollback": 10000,
 
@@ -412,4 +407,10 @@
   "workbench.editor.tabActionCloseVisibility": false,
   "security.workspace.trust.untrustedFiles": "open",
   "workbench.activityBar.compact": true,
+
+  // ── LINUX ──────────────────────────────────────────────────────────────
+  // Hide the menu bar (Alt still reveals it) and use VS Code's own title bar,
+  // which looks right under GNOME instead of a GTK bar plus a menu row.
+  "window.menuBarVisibility": "toggle",
+  "window.titleBarStyle": "custom",
 }

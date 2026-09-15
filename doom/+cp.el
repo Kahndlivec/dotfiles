@@ -7,8 +7,8 @@
 ;;
 ;; Everything is under the localleader in C++ buffers, i.e. `SPC m` (or `,`):
 ;;
-;;   SPC m b   build (g++-16, -O2)
-;;   SPC m B   build with sanitizers (clang++, ASan+UBSan)
+;;   SPC m b   build (g++, -O2)
+;;   SPC m B   build with sanitizers (g++, ASan+UBSan)
 ;;   SPC m t   build + run every tests/*.in and diff against tests/*.out
 ;;   SPC m r   build + run interactively (type your own stdin)
 ;;   SPC m s   stress test against brute.cpp using gen.cpp
@@ -29,11 +29,11 @@
 (defvar +cp-template-file (expand-file-name "templates/cp.cpp" doom-user-dir)
   "Your C++ template. Drop your own file here; it is copied verbatim.")
 
-(defvar +cp-compiler "g++-16"
-  "Compiler for normal builds. Matches your Homebrew default.")
+(defvar +cp-compiler "g++"
+  "Compiler for normal builds. GCC, same family as Codeforces' judge.")
 
-(defvar +cp-debug-compiler "clang++"
-  "Compiler for sanitizer builds. clang++ has the better ASan on macOS.")
+(defvar +cp-debug-compiler "g++"
+  "Compiler for sanitizer builds. GCC's ASan/UBSan work fully on x86-64 Linux.")
 
 (defvar +cp-standard "-std=c++23")
 

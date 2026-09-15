@@ -1,48 +1,37 @@
 # ═══════════════════════════════════════════════════════════════════
-#  ~/.config/ghostty/config
+#  ~/.config/ghostty/config  →  symlink to dotfiles/ghostty/config
 #
-#  tmux owns splits, tabs and sessions now. Ghostty's job is to be a
-#  fast, plain window and stay out of the way — so this file is short
-#  on purpose. Almost every Ghostty default is already correct.
+#  tmux owns splits, tabs and sessions. Ghostty's job is to be a fast,
+#  plain window and stay out of the way — so this file is short on
+#  purpose. Almost every Ghostty default is already correct.
 #
-#  Your HHKB:
-#    ⌃   caps lock, pinky   →  tmux leader (⌃Space) and vim
-#    ⌘   bottom-left thumb  →  macOS only, Ghostty binds nothing new
-#    ⌥   bottom-right only  →  unused, bad reach
-#
-#  Reload after editing:  ⌘⇧,
+#  Super+T raises this window (GNOME run-or-raise, gnome/settings.sh).
+#  Reload after editing:  Ctrl+Shift+,
 # ═══════════════════════════════════════════════════════════════════
 
-# Font Family
 font-family = JetBrainsMono Nerd Font Mono
+font-size = 12
 theme = Monokai Pro
 
-# Closing a Ghostty window no longer loses anything — your tmux
-# session keeps running in the background and `tmux a` brings it
-# straight back. So the "are you sure?" dialog is just friction now.
+# Closing the window loses nothing — the tmux session keeps running and
+# `ta` brings it back. So the "are you sure?" dialog is just friction.
 confirm-close-surface = false
 
+# Land straight in tmux: attach to session "main", or create it.
+# Comment out if you ever want a bare shell in new windows.
+command = tmux new-session -A -s main
 
-# ═══════════════════════════════════════════════════════════════════
-#  Optional — uncomment only if you hit the problem it solves.
-# ═══════════════════════════════════════════════════════════════════
+# Minimal chrome on GNOME: title bar disappears when maximised.
+gtk-titlebar-hide-when-maximized = true
+window-padding-x = 6
+window-padding-y = 4
 
-# Makes ⌥ send Meta, so <M-x> style mappings work in vim and tmux.
-# The cost: you lose ⌥-typed characters (é, š, €, …) and ⌥ is your
-# only one, stuck bottom-right since the left one became Fn.
-# macos-option-as-alt = true
+# Keep Ghostty's own splits/tabs off the keyboard so nothing competes
+# with tmux. Copy/paste stay on Ctrl+Shift+C / Ctrl+Shift+V (defaults).
+keybind = ctrl+shift+t=unbind
+keybind = ctrl+shift+o=unbind
+keybind = ctrl+shift+e=unbind
 
-# If you ever SSH into a machine that doesn't know Ghostty's terminfo
-# and the screen goes garbled, this makes Ghostty pretend to be xterm.
-# Better fix is installing the terminfo on the remote — try this only
-# when you can't.
-# term = xterm-256color
-
-
-# ─── Already built in, no config needed ────────────────────────────
-#   ⌘N        new window          ⌘F   search the scrollback
-#   ⌘K        clear screen        ⌘⇧,  reload this file
-#   ⌘= ⌘- ⌘0  font size
-#
-# ⌘D / ⌘⇧D still make Ghostty splits, but ignore them — use tmux
-# panes instead so your layout survives closing the terminal.
+# ─── Built in, no config needed ────────────────────────────────────
+#   Ctrl+Shift+N   new window         Ctrl+Shift+F  search scrollback
+#   Ctrl+= / - / 0 font size          Ctrl+Shift+,  reload this file

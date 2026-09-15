@@ -1,196 +1,73 @@
 [
     // ═══════════════════════════════════════════════════════════════════════
-    //  VS Code keybindings.json — HHKB Pro Classic, macOS
-    //  Port of your Default (OSX).sublime-keymap, minus everything CP.
-    //  ─────────────────────────────────────────────────────────────────────
-    //    Control key (row 3, far left)   →  ⌃ Control   free — left pinky
-    //    Bottom-left Alt slot            →  ⌘ Command   cheap — under Z X C V
-    //    ◇ left of Space                 →  Fn          free — left thumb
-    //    ◇ right of Space                →  ⌘ Command   cheap — right thumb
-    //    Bottom-right Alt slot           →  ⌥ Option    expensive — corner
+    //  VS Code keybindings.json  →  ~/.config/Code/User/keybindings.json
+    //  Linux + GNOME + HHKB.
     //
-    //  Same four rules as your Sublime keymap:
-    //    1. ⌃ carries burst-fired chords (Vim internals, panes).
-    //    2. ⌘ carries one-shot punctuation (run, debug, goto).
-    //    3. ZERO alt+ bindings. ⌥ is a corner key.
-    //    4. Nothing depends on arrows / Home / End / F-keys — those need Fn.
+    //  Three layers, and this file is the thinnest one:
+    //    1. Super       belongs to GNOME: apps and workspaces (gnome/settings.sh).
+    //                   Nothing here uses it.
+    //    2. SPC leader  in normal mode does the real work — files, search,
+    //                   splits, rename, format, debug, git, notebooks. Defined
+    //                   in the vim.g.vscode branch of nvim/init.lua, so it's
+    //                   the same muscle memory as Doom and standalone nvim.
+    //    3. Ctrl        only for what must work OUTSIDE normal mode: moving
+    //                   between panes/sidebar/terminal, run, completion.
     //
-    //  Rule 4 does the most work here. Stock VS Code puts the entire debug
-    //  loop on F5/F9/F10/F11, rename on F2, next-problem on F8 and
-    //  go-to-definition on F12. Every one of those is remapped below.
+    //  Rules held: no Alt, no F-keys, no arrows.
     //
-    //  User keybindings load LAST, after every extension, so each entry here
-    //  wins outright over vscode-neovim's own bindings — same guarantee
-    //  Packages/User gave you in Sublime.
+    //  Stock Linux VS Code chords that start with Ctrl+K (Ctrl+K Ctrl+S for
+    //  the shortcuts editor, etc.) are shadowed by Ctrl+K below. They're all
+    //  still in the command palette: Ctrl+Shift+P.
     // ═══════════════════════════════════════════════════════════════════════
 
 
     // ── PANES ──────────────────────────────────────────────────────────────
-    // Direct port of your Origami travel_to_pane block. Same keys, same
-    // reasoning: `nnoremap <C-h> <C-w>h` is the single most common remap in
-    // real Neovim configs, so the habit transfers when you go standalone.
-    //
-    // navigate* (not focus*Group) is deliberate: it crosses out of the editor
-    // grid into the terminal panel and the sidebar too, so ⌃J from the bottom
-    // editor lands in the terminal instead of doing nothing.
-    //
-    // ⚠ These shadow terminal readline keys (⌃A line-start, ⌃L clear, ⌃H
-    //   backspace). If that bothers you, add  "when": "!terminalFocus"  to
-    //   all four and use ⌘K then h/j/k/l to leave the terminal. ⌘K ⇧C below
-    //   is bound to terminal-clear as the ⌃L replacement.
-    { "key": "ctrl+h", "command": "workbench.action.navigateLeft" },
-    { "key": "ctrl+j", "command": "workbench.action.navigateDown" },
-    { "key": "ctrl+k", "command": "workbench.action.navigateUp" },
-    { "key": "ctrl+l", "command": "workbench.action.navigateRight" },
+    // Same keys as tmux + nvim (vim-tmux-navigator) and Doom. navigate* crosses
+    // out of the editor grid into the terminal panel and the sidebar too.
+    // Skipped in insert mode so Ctrl+H stays backspace and Ctrl+J newline.
+    { "key": "ctrl+h", "command": "workbench.action.navigateLeft",  "when": "!editorTextFocus || neovim.mode != insert" },
+    { "key": "ctrl+j", "command": "workbench.action.navigateDown",  "when": "!editorTextFocus || neovim.mode != insert" },
+    { "key": "ctrl+k", "command": "workbench.action.navigateUp",    "when": "!editorTextFocus || neovim.mode != insert" },
+    { "key": "ctrl+l", "command": "workbench.action.navigateRight", "when": "!editorTextFocus || neovim.mode != insert" },
 
-    // Port of create_pane. splitEditor* focuses the new group already, so no
-    // give_focus workaround needed this time.
-    { "key": "cmd+k h", "command": "workbench.action.splitEditorLeft" },
-    { "key": "cmd+k j", "command": "workbench.action.splitEditorDown" },
-    { "key": "cmd+k k", "command": "workbench.action.splitEditorUp" },
-    { "key": "cmd+k l", "command": "workbench.action.splitEditorRight" },
-
-    // destroy_pane {"direction": "self"}
-    { "key": "cmd+k x", "command": "workbench.action.closeGroup" },
-
-    // carry_file_to_pane
-    { "key": "cmd+k shift+h", "command": "workbench.action.moveEditorToLeftGroup" },
-    { "key": "cmd+k shift+l", "command": "workbench.action.moveEditorToRightGroup" },
-
-    // toggle_zoom_pane. Overrides VS Code's default ⌘K Z (Zen Mode), which
-    // moves to ⌘K ⇧Z below.
-    { "key": "cmd+k z", "command": "workbench.action.toggleMaximizeEditorGroup" },
-    { "key": "cmd+k shift+z", "command": "workbench.action.toggleZenMode" },
-    { "key": "cmd+k =", "command": "workbench.action.evenEditorWidths" },
+    // Splits, close, zoom: SPC w v / SPC w s / SPC w d / SPC w m in normal mode.
+    // vscode-neovim also understands C-w v, C-w s, C-w q natively.
 
 
-    // ── SIDEBAR / PANELS / VIEWS ───────────────────────────────────────────
-    // toggle_side_bar. This is why ⌘B is free for toggle-breakpoint below.
-    { "key": "cmd+k b", "command": "workbench.action.toggleSidebarVisibility" },
-
-    // reveal_in_side_bar
-    { "key": "cmd+k r", "command": "workbench.files.action.showActiveFileInExplorer" },
-
-    // ⌘K T — terminal. (Was insert-cp-template; free now.) The stock binding
-    // is ⌃` and on HHKB the backtick sits in the number row's right corner.
-    { "key": "cmd+k t", "command": "workbench.action.terminal.toggleTerminal" },
-
-    // ⌘K P — toggle the bottom panel, same slot your FOC test panel had.
-    { "key": "cmd+k p", "command": "workbench.action.togglePanel" },
-
-    // Replacement for the ⌃L this file took away: with the terminal focused,
-    // macOS VS Code already binds plain ⌘K to "clear terminal", so nothing to
-    // add here. (That default also means the ⌘K chords above don't fire while
-    // the terminal has focus — leave it with ⌃H/⌃K first, then chord.)
-
-    // Views, on the ⌘K chord family so ⌘⇧E/F/G stay predictable.
-    { "key": "cmd+k e", "command": "workbench.view.explorer" },
-    { "key": "cmd+k f", "command": "workbench.view.search" },
-    { "key": "cmd+k s", "command": "workbench.action.files.saveAll" },
-
-    // ⌘⇧G was find_previous in Sublime and you overrode it there for the same
-    // reason: Vim has N. Source control view instead.
-    { "key": "cmd+shift+g", "command": "workbench.view.scm" },
-
-    // Tab cycling (these match macOS defaults; listed so the file is the one
-    // place you look).
-    { "key": "cmd+shift+[", "command": "workbench.action.previousEditor" },
-    { "key": "cmd+shift+]", "command": "workbench.action.nextEditor" },
-
-
-    // ── LSP / NAVIGATION ───────────────────────────────────────────────────
-    // ⌃] is Vim's jump-to-tag. Same finger, same meaning — straight port, and
-    // it replaces F12 so nothing here needs Fn.
-    { "key": "ctrl+]", "command": "editor.action.revealDefinition", "when": "editorTextFocus" },
-    { "key": "ctrl+shift+]", "command": "editor.action.peekDefinition", "when": "editorTextFocus" },
-
-    // lsp_symbol_references
-    { "key": "cmd+shift+u", "command": "editor.action.goToReferences", "when": "editorTextFocus" },
-
-    // lsp_show_diagnostics_panel
-    { "key": "cmd+shift+a", "command": "workbench.actions.view.problems" },
-
-    // next_result / prev_result. Was compile-error jumping; now it walks
-    // Problems across the whole workspace. Replaces F8 / ⇧F8.
-    { "key": "cmd+'", "command": "editor.action.marker.nextInFiles" },
-    { "key": "cmd+shift+'", "command": "editor.action.marker.prevInFiles" },
-
-    // ⌘⇧R — rename symbol. Replaces F2, which needs Fn on HHKB.
-    // (⌘⇧R was a build variant in Sublime; nothing to preserve.)
-    { "key": "cmd+shift+r", "command": "editor.action.rename", "when": "editorHasRenameProvider && editorTextFocus && !editorReadonly" },
-
-    // ⌘⇧K — format document. (⌘⇧K is delete-line by default; you have dd.
-    // Exactly the trade your Sublime file made for "Compile only".)
-    { "key": "cmd+shift+k", "command": "editor.action.formatDocument", "when": "editorTextFocus && !editorReadonly" },
+    // ── TERMINAL ───────────────────────────────────────────────────────────
+    // Ctrl+; toggles the integrated terminal from anywhere, including from
+    // inside it. Stock is Ctrl+` — backtick is a corner key on the HHKB.
+    { "key": "ctrl+;", "command": "workbench.action.terminal.toggleTerminal" },
 
 
     // ── RUN ────────────────────────────────────────────────────────────────
-    // ⌘⏎ — the main loop key, kept from your Sublime file: right pinky Return,
-    // left thumb ⌘. In a normal file it runs the file; in a notebook it runs
-    // the cell and moves to the next one. Same key, same meaning, both places.
+    // Ctrl+Enter runs the file; in a notebook it keeps the stock meaning
+    // (run cell). SPC <CR> does the same from normal mode.
     {
-        "key": "cmd+enter",
+        "key": "ctrl+enter",
         "command": "code-runner.run",
         "when": "editorTextFocus && !notebookEditorFocused && !findInputFocussed && !replaceInputFocussed"
     },
-    {
-        "key": "cmd+enter",
-        "command": "notebook.cell.executeAndSelectBelow",
-        "when": "notebookEditorFocused && !inputFocus"
-    },
-    { "key": "cmd+shift+enter", "command": "code-runner.runInTerminal", "when": "editorTextFocus && !notebookEditorFocused" },
-    { "key": "cmd+k c", "command": "code-runner.stop" },
+    { "key": "ctrl+shift+enter", "command": "code-runner.stop" },
 
 
-    // ── DEBUG (the whole F-key row, relocated) ─────────────────────────────
-    // ⌘⇧D — F5. Starts a session when there isn't one, continues when there
-    // is, exactly like F5 does. Overrides "show Debug sidebar", which moves
-    // to ⌘⇧Y below.
-    { "key": "cmd+shift+d", "command": "workbench.action.debug.start", "when": "!inDebugMode" },
-    { "key": "cmd+shift+d", "command": "workbench.action.debug.continue", "when": "inDebugMode" },
-
-    // ⌘B — F9, toggle breakpoint. Free because the sidebar moved to ⌘K B.
-    // This is the most-pressed debug key, so it gets the cheapest slot.
-    { "key": "cmd+b", "command": "editor.debug.action.toggleBreakpoint", "when": "editorTextFocus" },
-
-    // Stepping. ⌘; / ⌘⇧; are F10 / F11; step-out is rarer so it takes the
-    // ⌘K chord. Scoped to inDebugMode so ⌘; is free the rest of the time.
-    { "key": "cmd+;", "command": "workbench.action.debug.stepOver", "when": "inDebugMode" },
-    { "key": "cmd+shift+;", "command": "workbench.action.debug.stepInto", "when": "inDebugMode" },
-    { "key": "cmd+k ;", "command": "workbench.action.debug.stepOut", "when": "inDebugMode" },
-    { "key": "cmd+k d", "command": "workbench.action.debug.stop", "when": "inDebugMode" },
-
-    // The Debug sidebar, displaced from ⌘⇧D.
-    { "key": "cmd+shift+y", "command": "workbench.view.debug" },
+    // ── LSP ────────────────────────────────────────────────────────────────
+    // Ctrl+] is Vim's jump-to-tag: same finger, same meaning. Replaces F12.
+    { "key": "ctrl+]", "command": "editor.action.revealDefinition", "when": "editorTextFocus" },
+    { "key": "ctrl+shift+]", "command": "editor.action.peekDefinition", "when": "editorTextFocus" },
 
 
     // ── LINE START / END IN INSERT MODE ────────────────────────────────────
-    // Direct port, including the reasoning: insert-mode only, so Neovim keeps
-    // normal-mode ⌃A (increment) and ⌃E (scroll down one line).
-    //
-    // vscode-neovim forwards ⌃A to Neovim in insert mode by default; this
-    // entry outranks that because user keybindings load last. Shadows Vim's
-    // i_CTRL-A, which you will never use. Delete these two if you disagree.
+    // Insert mode only, so normal-mode Ctrl+A (increment) and Ctrl+E (scroll)
+    // stay Neovim's. Matches the zsh/readline keys.
     { "key": "ctrl+a", "command": "cursorLineStart", "when": "editorTextFocus && neovim.mode == insert" },
-    { "key": "ctrl+e", "command": "cursorLineEnd", "when": "editorTextFocus && neovim.mode == insert" },
-
-    // No ctrl+d binding on purpose — it would shadow Vim's i_CTRL-D (unindent)
-    // in insert mode and <C-d> half-page-down in normal mode.
+    { "key": "ctrl+e", "command": "cursorLineEnd",   "when": "editorTextFocus && neovim.mode == insert" },
 
 
-    // ── SUGGEST WIDGET HYGIENE ─────────────────────────────────────────────
-    // Tab accepts the completion, Enter always inserts a newline. This pairs
-    // with "editor.acceptSuggestionOnEnter": "off" in settings.json and
-    // reproduces your auto_complete_commit_on_tab behaviour.
-    { "key": "tab", "command": "acceptSelectedSuggestion", "when": "suggestWidgetVisible && textInputFocus" },
+    // ── COMPLETION ─────────────────────────────────────────────────────────
+    // Tab accepts, Enter always inserts a newline (pairs with
+    // "editor.acceptSuggestionOnEnter": "off" in settings.json).
+    { "key": "tab", "command": "acceptSelectedSuggestion", "when": "suggestWidgetVisible && textInputFocus" }
 
-    // Escape is NOT rebound anywhere in this file. It has to reach Neovim
-    // untouched — VS Code's own defaults already dismiss the suggest widget
-    // and close panels first, and a second Escape then leaves insert mode.
-    // That's the correct layering, same as your Sublime note.
-
-    // Notebooks: ⌃⏎ (run cell, stay) and ⇧⏎ (run and advance) are VS Code
-    // defaults and both are HHKB-cheap, so they're left alone.
-    { "key": "cmd+k n", "command": "notebook.cell.insertCodeCellBelow", "when": "notebookEditorFocused && !inputFocus" },
-    { "key": "cmd+k m", "command": "notebook.cell.insertMarkdownCellBelow", "when": "notebookEditorFocused && !inputFocus" }
+    // Escape is NOT rebound anywhere. It has to reach Neovim untouched.
 ]

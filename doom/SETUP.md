@@ -1,7 +1,7 @@
 # Doom Emacs — setup
 
-Everything here targets your M1 Pro on macOS, with the Panasonic/Linux box in mind
-(the config is portable; only section 1 is macOS-specific).
+Targets Ubuntu 26.04 + GNOME (Wayland) on the desktop and the ThinkPad X13.
+`install.sh` at the repo root does sections 1–3 for you; this file explains why.
 
 ---
 
@@ -58,80 +58,62 @@ it feels.
 
 ## 1. Install
 
+`install.sh` does all of this. By hand, it's:
+
 ```bash
-# Emacs itself. emacs-plus@31 is the current stable; native-comp and
-# tree-sitter are on by default.
-brew tap d12frosted/emacs-plus
-brew install emacs-plus@31 --with-xwidgets --with-imagemagick
-ln -s /opt/homebrew/opt/emacs-plus@31/Emacs.app /Applications/Emacs.app
+# Emacs itself. emacs-pgtk is the native Wayland build — the X11 one renders
+# soft under GNOME's scaling on 4K screens.
+sudo apt install emacs-pgtk
 
 # Doom's own dependencies
-brew install ripgrep fd coreutils git
+sudo apt install ripgrep fd-find git && ln -sf "$(command -v fdfind)" ~/.local/bin/fd
 
-# pdf-tools needs to build a C module
-brew install cmake automake libtool poppler pkg-config
+# pdf-tools builds a C module; vterm builds one too
+sudo apt install cmake automake autoconf libtool-bin pkgconf \
+  libpoppler-glib-dev libpoppler-private-dev libpng-dev zlib1g-dev libvterm-dev
 
-# Real project work: clangd + lldb-dap for C++, plus CMake.
-brew install llvm cmake
-# clangd and lldb-dap live in /opt/homebrew/opt/llvm/bin — add it to PATH,
-# AFTER your other entries so brew's clang doesn't shadow Xcode's.
+# Real project work: clangd for C++, gdb (speaks DAP natively) for dape
+sudo apt install build-essential gdb clangd clang-format cmake
 
-# Language servers you'll actually use
-npm i -g pyright bash-language-server
-pip3 install --user debugpy      # for dape on Python
+# Language servers, Claude, Python debugger
+npm i -g pyright bash-language-server @anthropic-ai/claude-code
+pipx install debugpy        # for dape on Python
 
-# LaTeX. Full TeX Live without the GUI apps you won't use (no TeXShop,
-# no BibDesk — Emacs is your editor). ~6 GB download, ~7 GB on disk.
-brew install --cask mactex-no-gui
-eval "$(/usr/libexec/path_helper)"     # puts /Library/TeX/texbin on PATH
-sudo tlmgr update --self --all
+# LaTeX — deferred until you actually miss org previews. When you do:
+#   sudo apt install texlive-latex-extra texlive-science dvisvgm latexmk
+# (texlive-full is ~6 GB; the line above covers math notes.)
 
-# Only if disk is genuinely tight (a 256 GB machine). Expect to hit
-# "File `tikz.sty' not found" at some point and have to come back here.
-# brew install --cask basictex
-# sudo tlmgr update --self
-# sudo tlmgr install dvisvgm standalone preview mathtools physics \
-#                    pgf tikz-cd babel-czech babel-slovak latexmk
-
-# org export + Claude
-brew install pandoc
-npm i -g @anthropic-ai/claude-code
-npm i -g pyright        # only if you want Python LSP
+sudo apt install pandoc
 
 # Doom
 git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
 ~/.config/emacs/bin/doom install
 ```
 
-Add to your zshrc (you already have a dotfiles repo, so put it there):
-
-```bash
-export PATH="$HOME/.config/emacs/bin:$PATH"
-export EDITOR="emacsclient -t -a ''"
-alias e='emacsclient -n -c -a ""'    # GUI frame — your default
-alias et='emacsclient -t -a ""'      # terminal frame — SSH / inside tmux
-alias doomsync='doom sync && doom doctor'
-```
+`zsh/.zshrc` already has the PATH entry, `e`, `et` and `doomsync`.
 
 ## 2. Config files
 
+`install.sh` symlinks `~/.config/doom` to `doom/` in the repo, so editing
+`~/.config/doom/config.el` IS editing the repo. Then:
+
 ```bash
-cp init.el config.el packages.el +cp.el ~/.config/doom/
-mkdir -p ~/.config/doom/templates
 doom sync
 doom doctor       # fix anything it flags before going further
 ```
 
-Then once, inside Emacs: `M-x pdf-tools-install` (it compiles the epdfinfo binary).
+Then once, inside Emacs: `M-x pdf-tools-install` and `M-x nerd-icons-install-fonts`.
 
 If `doom sync` rejects a module flag, it names the module and the flag. Delete that
-flag and re-run — nothing in `init.el` is load-bearing. The two most likely
-candidates are `:tools tree-sitter` and the `(:if (featurep :system 'macos) macos)`
-form, which older Doom writes as `(:if IS-MAC macos)`.
+flag and re-run — nothing in `init.el` is load-bearing. The most likely candidate
+is `:tools tree-sitter`.
+
+Per-machine tweaks (a bigger font on the 4K desktop, say) go in
+`~/.config/doom/+local.el`, which is git-ignored and loaded last.
 
 ## 2b. Keys
 
-Two rules shaped these: nvim muscle memory transfers, and nothing binds ⌥, an
+Two rules shaped these: nvim muscle memory transfers, and nothing binds Alt, an
 F-key, or anything that stretches your right pinky to `0 - = \`.
 
 | key | does | note |
@@ -155,72 +137,37 @@ lived there is on `SPC h` — `SPC h k` describes a key, `SPC h v` a variable,
 spend on a menu you visit twice a week.
 
 **`SPC :` matters more than it looks.** `M-x` is the most-pressed binding in all
-of Emacs and you've ruled out ⌥. Two comfortable keys instead of a stretch.
+of Emacs and you've ruled out Alt. Two comfortable keys instead of a stretch.
 
 Deliberately *not* rebound: the whole `C-w` window map, `]b` `[b`, `gt` `gT`,
 `gd`, `gr`, `SPC p` project commands. They already behave the way you expect.
 Adding a second way to do them would be noise, and a config you can't remember
 is worse than one that's slightly less clever.
 
-## 3. Daemon + Dock icon
+## 3. Launching: Super+E, no daemon
 
-The daemon runs under launchd; the Dock icon runs `emacsclient` against it.
+`config.el` starts a server inside the GUI Emacs you open, instead of running a
+separate systemd daemon. A daemon plus a launched Emacs gives you two independent
+Emacsen with different buffers, which buys nothing.
 
-```bash
-brew services start d12frosted/emacs-plus/emacs-plus@31
-bash install-emacs-dock-icon.sh
-```
-
-Then open it once from Spotlight and right-click its Dock icon > Options >
-Keep in Dock.
-
-Why the script rather than dragging `Emacs.app` over: **Emacs.app always starts
-a fresh Emacs and cannot attach to a daemon.** That's an Emacs limitation, not a
-config choice. Put the real bundle in your Dock and every click gives you a
-second, independent Emacs with its own buffers. The script builds a small applet
-that calls `emacsclient -c` instead, wearing the real Emacs icon, and it accepts
-files dropped on it or opened with "Open With > Emacs".
-
-Shell side:
+**Super+E** is GNOME's native run-or-raise (see `gnome/settings.sh`): if Emacs
+is running it's focused, if not it's launched. So there's one Emacs, one window
+to find, and the shell side attaches to it:
 
 ```bash
-e file.cpp     # GUI frame in the daemon session, instantly
+e file.cpp     # open in the running GUI Emacs (launches it if needed)
 et             # terminal frame, same session — SSH or inside tmux
 ```
 
-`config.el` guards on `daemonp`, so it starts an in-process server only when
-you're *not* running a daemon. Both modes work; you don't have to edit anything
-if you switch.
+Trade-off: `emacsclient` only works once Emacs is open, and there's a ~2 s cold
+start after each login. If that starts to bother you, a systemd user service
+(`systemctl --user enable --now emacs`) is the upgrade path; `config.el` guards
+on `daemonp`, so nothing needs editing.
 
-### Two things to know about daemon mode
-
-**Two Dock icons while frames are open** — the pinned launcher, plus the running
-Emacs. Unavoidable. If it bothers you, don't pin the applet: bind
-`emacsclient -c -a ""` to a Raycast hotkey instead and skip the Dock entirely.
-
-**No frame exists during daemon startup**, so `display-graphic-p` is nil while
-your config loads. Face and font code written naively renders wrong on the first
-frame. Nothing in this config trips it, but if you later add a `custom-set-faces!`
-block that comes out wrong, that's the cause — hang it on
-`server-after-make-frame-hook` instead of running it at load time.
-
-### If you'd rather not run a daemon
-
-Skip both commands above, symlink the app, and let the GUI Emacs be the server:
-
-```bash
-ln -s /opt/homebrew/opt/emacs-plus@31/Emacs.app /Applications/Emacs.app
-```
-
-`config.el` starts the server inside it automatically. `e` and `et` still work,
-and you get one Dock icon. Trade-off: `emacsclient` only works once you've
-opened Emacs, and you pay ~2s cold start after each reboot.
-
-**Note on tmux:** your tmux prefix is `⌃Space`, which is also `set-mark` in
-Emacs. Inside `et` running in tmux, tmux wins and you lose that binding. Evil's
-visual mode covers it in practice, but the cleaner answer is not to run Emacs
-inside tmux locally — use the GUI, and let Emacs' own vterm (`SPC o t`) handle
-terminals. tmux stays for the homelab.
+**Note on tmux:** your tmux prefix is `C-Space`, which is also `set-mark` in
+Emacs. Inside `et` running in tmux, tmux wins. Evil's visual mode covers it in
+practice, but the cleaner answer is not to run Emacs inside tmux locally — use the
+GUI, and let Emacs' own vterm (`SPC o t`) handle terminals.
 
 ## 4. Notes
 
@@ -268,9 +215,9 @@ Orgro is the one that renders your math properly, so use Orgro for notes and onl
 add Beorg if capture-on-the-go turns out to be something you actually do.
 
 For the handwriting loop: work the proof out in GoodNotes → export the region as PNG
-→ it syncs to Drive → in Emacs, `SPC n v` pastes it from the clipboard into the org
-file as a linked image in `assets/`. `SPC n V` does a `screencapture` region select
-instead, which is faster if the iPad is mirroring.
+→ it syncs to Drive → drag it into the org buffer, or copy it and `SPC n v` pastes
+it (via `wl-paste`) as a linked image in `assets/`. For anything on screen: PrtSc,
+select the area — GNOME puts it on the clipboard — then `SPC n v`.
 
 ## 5. Competitive programming
 
@@ -287,8 +234,8 @@ Then:
 | key | what |
 |---|---|
 | `SPC m t` | build + run all samples, diff, verdicts in one buffer |
-| `SPC m b` | build only (g++-16, -O2) |
-| `SPC m B` | build with ASan + UBSan (clang++) |
+| `SPC m b` | build only (g++, -O2) |
+| `SPC m B` | build with ASan + UBSan (g++) |
 | `SPC m r` | build + run interactively, type your own input |
 | `SPC m s` | stress test against `brute.cpp` using `gen.cpp` |
 | `SPC m p` | log the problem into `cp-log.org` |
@@ -297,7 +244,7 @@ Then:
 failing input to `tests/hack.in` and opens it.
 
 The compiler settings are at the top of `+cp.el` — `+cp-compiler`, `+cp-standard`,
-`+cp-fast-flags`. They match the toolchain you already verified with `:Doctor`.
+`+cp-fast-flags`. Keep them in sync with `cprun` / `cpjudge` in `.zshrc`.
 
 ## 5b. Real projects: build, debug, navigate
 
@@ -313,7 +260,7 @@ toggles header/source.
 
 Debugging is `dape` — a DAP client built on Emacs 29's own machinery, about a
 tenth the size of dap-mode and actually maintained. `SPC d d` prompts with the
-available adapters. For C++ it drives `lldb-dap` from Homebrew LLVM; for Python,
+available adapters. For C++ pick `gdb` (GDB 14+ speaks DAP itself); for Python,
 `debugpy`. `SPC d b` toggles a breakpoint. Breakpoints survive restarts.
 
 For ML/Python work, `direnv` is the piece that makes this pleasant: drop an
@@ -343,18 +290,16 @@ Given you said the heavy generation stays in VS Code: `claude-code-ide` for
 targeted work, `gptel` for thinking out loud, terminal Claude when you want a
 full screen.
 
-## 6. SSH / homelab
+## 6. SSH
 
-`ssh_config.sample` in this folder is the ControlMaster setup. Merge it into
-`~/.ssh/config` and change `homelab` to your Tailscale hostname.
+`ssh/config` has the ControlMaster setup TRAMP needs, and `install.sh` copies it.
+`/ssh:khandlab-tramp:~/` then works as a path anywhere Emacs takes a filename —
+`SPC .`, `SPC f f`, dired — e.g. from the ThinkPad into the desktop.
 
-Then `/ssh:homelab:~/` works as a path anywhere Emacs takes a filename — `SPC .`,
-`SPC f f`, dired. `SPC o H` opens the homelab in dired directly.
-
-**For heavy remote work, don't use TRAMP.** Run a second Emacs daemon on the
-homelab and `ssh homelab -t "emacsclient -t -a ''"`. TRAMP is right for editing a
-config file over there; it's wrong for a whole project, because every LSP request
-and git call goes over the wire synchronously and blocks your UI.
+**For heavy remote work, don't use TRAMP.** Run Emacs on the other machine and
+`ssh -t khandlab "emacsclient -t -a ''"`. TRAMP is right for editing a config file
+over there; it's wrong for a whole project, because every LSP request and git call
+goes over the wire synchronously and blocks your UI.
 
 ## 7. Calendar
 
