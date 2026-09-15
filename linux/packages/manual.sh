@@ -96,7 +96,7 @@ pipx install diceware 2>/dev/null || sk "diceware"
 "$UV" tool install black || sk "black"
 
 # Same problem: mise put node behind its shim dir, not on PATH yet.
-"$MISE" exec node@lts -- npm i -g \
+"$MISE" exec node@lts -- npm i -g --allow-scripts=@anthropic-ai/claude-code,tree-sitter-cli \
   @anthropic-ai/claude-code bash-language-server pyright tree-sitter-cli
 ok "npm globals"
 
@@ -112,7 +112,7 @@ else
     https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
   unzip -qo "$tmp/jbm.zip" -d "$FONTDIR/JetBrainsMono"
   rm -rf "$tmp"
-  fc-cache -f >/dev/null
+  fc-cache -f "$FONTDIR" >/dev/null
   ok "JetBrainsMono Nerd Font"
 fi
 
