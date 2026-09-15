@@ -12,7 +12,7 @@
 #    Super+V        VS Code          Super+Tab         switch apps
 #    Super+M        Spotify          Alt+Tab           switch windows
 #    Super+F        Files            Super+N           notifications
-#    Super          overview / search (Raycast's job)
+#    Super          overview / search / launch anything
 #    Super+←/→/↑    tile left / right / maximise (GNOME default)
 #
 #  App keys are RUN-OR-RAISE, not "launch": if the app is open you jump to

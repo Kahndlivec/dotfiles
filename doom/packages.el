@@ -56,7 +56,7 @@
 ;; jinx: fast spell-checking (C module over enchant, unlike flyspell). Genuinely
 ;;   good, and you'll want it once you're writing prose notes in two languages.
 ;;   Left off because spell-check is a classic source of typing lag and you
-;;   should feel the baseline first. Needs `brew install enchant`.
+;;   should feel the baseline first. Needs `sudo apt install libenchant-2-dev`.
 ;;   (package! jinx)
 ;; forge: GitHub PRs and issues inside magit. Needs a token, and you review PRs
 ;;   in the browser anyway.

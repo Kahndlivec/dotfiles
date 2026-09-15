@@ -1,7 +1,7 @@
 # ~/.clang-format — formatting for competitive programming.
 #
 # Install:  cp .clang-format ~/.clang-format
-# Use:      ⌘⇧P → "LSP: Format Document"   (clangd reads this file)
+# Use:      SPC c f in Emacs/Neovim (clangd reads this file)
 #
 # clangd searches upward from the file being edited and stops at the first
 # .clang-format it finds, so one in $HOME applies everywhere unless a contest
