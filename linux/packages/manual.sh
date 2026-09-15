@@ -82,16 +82,22 @@ command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
 ok "uv"
 
 # Node via mise, so it's version-pinned per project rather than system-wide.
-"$HOME/.local/bin/mise" use -g node@lts >/dev/null 2>&1 || true
+MISE="$HOME/.local/bin/mise"
+"$MISE" use -g node@lts >/dev/null 2>&1 || true
 ok "node (mise, lts)"
 
 # ─── python + npm globals ──────────────────────────────────────────
 hdr "globals"
+# Absolute paths: these were installed seconds ago in this same script,
+# so they are not on PATH in this shell yet.
+UV="$HOME/.local/bin/uv"
 pipx install diceware 2>/dev/null || sk "diceware"
-uv tool install ruff  2>/dev/null || sk "ruff"
-uv tool install black 2>/dev/null || sk "black"
+"$UV" tool install ruff  || sk "ruff"
+"$UV" tool install black || sk "black"
 
-npm i -g @anthropic-ai/claude-code bash-language-server pyright tree-sitter-cli
+# Same problem: mise put node behind its shim dir, not on PATH yet.
+"$MISE" exec node@lts -- npm i -g \
+  @anthropic-ai/claude-code bash-language-server pyright tree-sitter-cli
 ok "npm globals"
 
 # ─── JetBrainsMono Nerd Font ───────────────────────────────────────
