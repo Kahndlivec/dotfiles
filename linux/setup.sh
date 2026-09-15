@@ -44,14 +44,20 @@ hdr "role: $ROLE"
 
 # ─── apt ───────────────────────────────────────────────────────────
 hdr "apt"
-mapfile -t PKGS < <(
-  sed 's/#.*//' "$REPO/linux/packages/apt.txt" | grep -vE '^\s*$' | awk '{print $1}'
-)
-# thinkpad-only lines are tagged '# thinkpad' in apt.txt
-if [[ $ROLE != thinkpad ]]; then
-  mapfile -t TP < <(grep '# thinkpad' "$REPO/linux/packages/apt.txt" | awk '{print $1}')
-  for t in "${TP[@]:-}"; do PKGS=("${PKGS[@]/$t}"); done
+# Lines tagged '# thinkpad' are role-gated. Filter at read time — trying to
+# subtract from the array afterwards mangles names like tlp-rdw.
+if [[ $ROLE == thinkpad ]]; then
+  FILTER='cat'
+else
+  FILTER='grep -v # thinkpad'
 fi
+mapfile -t PKGS < <(
+  if [[ $ROLE == thinkpad ]]; then
+    cat "$REPO/linux/packages/apt.txt"
+  else
+    grep -v '# thinkpad' "$REPO/linux/packages/apt.txt"
+  fi | sed 's/#.*//' | awk 'NF {print $1}'
+)
 sudo apt-get update -qq
 sudo apt-get install -y "${PKGS[@]}"
 ok "$(( ${#PKGS[@]} )) packages"
