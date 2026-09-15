@@ -15,8 +15,9 @@ work. **Neovim** is the in-terminal editor. Ghostty and tmux own the terminal.
 ## Fresh machine
 
 ```bash
-sudo apt install -y git
-git clone https://github.com/Kahndlivec/dotfiles ~/dotfiles
+sudo apt install -y git gh
+gh auth login                                  # pick SSH; works for a private repo
+gh repo clone Kahndlivec/dotfiles ~/dotfiles
 ~/dotfiles/install.sh
 ```
 
@@ -31,8 +32,8 @@ it's safe to re-run at any time. It installs:
 | editors | clones Doom and runs `doom install`, restores Neovim plugins from `lazy-lock.json` |
 | system | zsh as login shell, a fresh SSH key for this machine, GNOME keybindings and settings |
 
-Then once, by hand: log out and back in, `gh auth login` (pick SSH and let it
-upload the key), `sudo tailscale up`, `M-x pdf-tools-install` in Emacs, and
+Then once, by hand: log out and back in, `gh ssh-key add ~/.ssh/id_ed25519.pub`
+(the key install.sh just made), `sudo tailscale up`, `M-x pdf-tools-install` in Emacs, and
 Brave Sync.
 
 ```bash

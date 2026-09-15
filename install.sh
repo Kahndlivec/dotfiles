@@ -4,7 +4,7 @@
 # ═══════════════════════════════════════════════════════════════════════════
 #  install.sh — set up an Ubuntu (26.04, GNOME) machine from this repo.
 #
-#      git clone https://github.com/Kahndlivec/dotfiles ~/dotfiles
+#      gh repo clone Kahndlivec/dotfiles ~/dotfiles
 #      ~/dotfiles/install.sh
 #
 #  Re-runnable: everything checks before it acts. Run it as yourself (not
@@ -366,7 +366,7 @@ if [[ "$MODE" == all ]]; then
 
   Once, by hand:
     1. Log out and back in   (zsh, PATH for GNOME apps, keybindings)
-    2. gh auth login         (choose SSH; let it upload ~/.ssh/id_ed25519.pub)
+    2. gh auth status || gh auth login, then: gh ssh-key add ~/.ssh/id_ed25519.pub
     3. sudo tailscale up
     4. In Emacs:             M-x pdf-tools-install
     5. In Brave:             Settings → Sync, to pull bookmarks and extensions
