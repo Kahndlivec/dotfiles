@@ -41,19 +41,9 @@ add_repo brave-browser \
   https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg \
   "deb [arch=$ARCH signed-by=$KEYRINGS/brave-browser.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main"
 
-# Firefox from Mozilla, not the Ubuntu snap.
-add_repo mozilla \
-  https://packages.mozilla.org/apt/repo-signing-key.gpg \
-  "deb [signed-by=$KEYRINGS/mozilla.gpg] https://packages.mozilla.org/apt mozilla main"
-if [[ ! -f /etc/apt/preferences.d/mozilla ]]; then
-  printf 'Package: *\nPin: origin packages.mozilla.org\nPin-Priority: 1000\n' \
-    | sudo tee /etc/apt/preferences.d/mozilla >/dev/null
-  ok "mozilla apt pin"
-fi
-
 sudo apt-get update -qq
-sudo apt-get install -y code google-chrome-stable brave-browser firefox
-ok "browsers + vscode"
+sudo apt-get install -y code google-chrome-stable brave-browser
+ok "vscode, chrome, brave"
 
 # ─── Claude Desktop ────────────────────────────────────────────────
 # Official Linux beta, Ubuntu 22.04+, from Anthropic's own apt repo.
