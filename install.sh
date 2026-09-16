@@ -291,6 +291,7 @@ link() { # link <repo-relative> <destination>
 install_links() {
   hdr "4  Configs (symlinks)"
   link zsh/.zshrc                 "$HOME/.zshrc"
+  link zsh/.zprofile              "$HOME/.zprofile"
   link git/.gitconfig             "$HOME/.gitconfig"
   # Ghostty loads config.ghostty and then the legacy extensionless `config`,
   # which would override ours — so clear a stale link or old file under that name.
@@ -432,7 +433,7 @@ check() {
 
   echo "  ── configs linked into the repo"
   local pair src dst
-  for pair in "zsh/.zshrc:$HOME/.zshrc" "git/.gitconfig:$HOME/.gitconfig" \
+  for pair in "zsh/.zshrc:$HOME/.zshrc" "zsh/.zprofile:$HOME/.zprofile" "git/.gitconfig:$HOME/.gitconfig" \
               "ghostty/config.ghostty:$HOME/.config/ghostty/config.ghostty" \
               "tmux/.tmux.conf:$HOME/.tmux.conf" "starship/starship.toml:$HOME/.config/starship.toml" \
               "nvim:$HOME/.config/nvim" "doom:$HOME/.config/doom" \
@@ -458,20 +459,12 @@ check() {
     && ok "GNOME session PATH has ~/.local/bin" || fail "GNOME session PATH lacks ~/.local/bin (log out and in)"
   [[ "${XDG_SESSION_TYPE:-}" == wayland ]] && ok "Wayland session" || warn "session type: ${XDG_SESSION_TYPE:-unknown}"
 
-  echo "  ── GNOME keys (what GNOME actually has right now)"
+  echo "  ── GNOME keys (live, compared with gnome/shortcuts.conf)"
   if have gsettings && [[ "${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]]; then
-    local favs i k
-    favs="$(gsettings get org.gnome.shell favorite-apps | tr -d "[]'" | tr ',' '\n' | sed 's/^ *//')"
-    for i in $(seq 1 9); do
-      k="$(gsettings get org.gnome.shell.keybindings "switch-to-application-$i")"
-      [[ "$k" == "@as []" || "$k" == "[]" ]] && continue
-      printf '     %-30s → %s\n' "$k" "$(sed -n "${i}p" <<<"$favs")"
-    done
-    for i in 1 2 3 4; do
-      printf '     %-30s → workspace %s\n' "$(gsettings get org.gnome.desktop.wm.keybindings "switch-to-workspace-$i")" "$i"
-    done
-    [[ "$(gsettings get org.gnome.shell.extensions.dash-to-dock hot-keys 2>/dev/null)" == false ]] \
-      && ok "dock hot-keys off (Super+1..9 free)" || fail "Ubuntu Dock still grabs Super+1..9"
+    bash "$D/gnome/settings.sh" verify \
+      || fail "app keys don't match gnome/shortcuts.conf (fix: ./install.sh gnome)"
+    [[ "$(gsettings get org.gnome.desktop.wm.keybindings switch-to-workspace-1)" == "['<Super>1']" ]] \
+      && ok "Super+1..4 workspaces" || fail "workspace keys not set"
     [[ "$(gsettings get org.gnome.mutter dynamic-workspaces)" == false ]] && ok "4 fixed workspaces" || fail "workspaces still dynamic"
   else
     warn "not in GNOME — run check from a terminal inside GNOME to see keys"

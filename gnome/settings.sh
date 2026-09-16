@@ -5,28 +5,18 @@
 #  Run from a terminal INSIDE your GNOME session (it needs the session bus).
 #  install.sh calls it; you can also run it on its own after editing.
 #
-#  ── The layout ─────────────────────────────────────────────────────────────
-#    Super+E        Emacs            Super+1..4        go to workspace
-#    Super+T / ⏎    Ghostty (tmux)   Super+Shift+1..4  send window there
-#    Super+B        Brave            Super+Q           close window
-#    Super+V        Neovim           Super+Tab         switch apps
-#    Super+C        VS Code          Alt+Tab           switch windows
-#    Super+M        Spotify          Super+N           notifications
-#    Super+F        Files
-#    Super          overview / search / launch anything
-#    Super+←/→/↑    tile left / right / maximise (GNOME default)
+#  App shortcuts live in gnome/shortcuts.conf — edit that file, not this one.
+#  This file sets workspaces, window keys, key repeat, dock look, dark mode.
 #
-#  App keys are RUN-OR-RAISE, not "launch": if the app is open you jump to
-#  its window (switching workspace if needed); if not, it starts. This uses
-#  GNOME's own switch-to-application-N mechanism, re-pointed from Super+1..9
-#  to letters — native on Wayland, no extension.
+#      ./settings.sh            apply everything
+#      ./settings.sh verify     compare GNOME's live keys with shortcuts.conf
 #
-#  ── Changing a key ─────────────────────────────────────────────────────────
-#  Edit the APPS list below (keys on the left, app on the right), then run
-#      ~/dotfiles/install.sh gnome
-#  To look at live values without the script: sudo apt install dconf-editor,
-#  then open /org/gnome/shell/keybindings/ (switch-to-application-N).
-#  Undo everything this file did to keys:
+#  Window keys set here:
+#    Super+1..4  go to workspace         Super+Q    close window
+#    Super+Shift+1..4  move window there  Alt+Tab    switch windows
+#    Super+N     notifications            Super+Tab  switch apps
+#
+#  Undo every key change and get GNOME's defaults back:
 #      gsettings reset-recursively org.gnome.shell.keybindings
 #      gsettings reset-recursively org.gnome.desktop.wm.keybindings
 #      gsettings reset-recursively org.gnome.shell.extensions.dash-to-dock
@@ -56,20 +46,8 @@ SHELL_KB=org.gnome.shell.keybindings
 MEDIA=org.gnome.settings-daemon.plugins.media-keys
 DOCK=org.gnome.shell.extensions.dash-to-dock
 
-# ═══ EDIT HERE ═══════════════════════════════════════════════════════════════
-# "key(s)|desktop-file candidates". Keys use GNOME syntax: <Super>x,
-# <Super><Shift>x, <Primary> for Ctrl. Candidates cover apt/snap/flatpak
-# installs; the first one found wins. See an app's desktop-file name with:
-#   ls /usr/share/applications ~/.local/share/applications /var/lib/snapd/desktop/applications
-APPS=(
-  "['<Super>e']|emacs.desktop emacs_emacs.desktop org.gnu.emacs.desktop"
-  "['<Super>t', '<Super>Return']|com.mitchellh.ghostty.desktop ghostty.desktop ghostty_ghostty.desktop"
-  "['<Super>b']|brave-browser.desktop com.brave.Browser.desktop brave_brave.desktop"
-  "['<Super>v']|io.neovim.nvim.desktop"
-  "['<Super>c']|code.desktop com.visualstudio.code.desktop code_code.desktop"
-  "['<Super>m']|spotify_spotify.desktop spotify.desktop com.spotify.Client.desktop"
-  "['<Super>f']|org.gnome.Nautilus.desktop"
-)
+CONF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/shortcuts.conf"
+MODE="${1:-apply}"
 
 APP_DIRS=(
   "$HOME/.local/share/applications"
@@ -80,15 +58,64 @@ APP_DIRS=(
   "$HOME/.local/share/flatpak/exports/share/applications"
 )
 
+# find_desktop "a.desktop|b.desktop" → first one that exists
 find_desktop() {
   local id dir
-  for id in "$@"; do
+  IFS='|' read -ra ids <<<"$1"
+  for id in "${ids[@]}"; do
     for dir in "${APP_DIRS[@]}"; do
       [[ -f "$dir/$id" ]] && { printf '%s' "$id"; return 0; }
     done
   done
   return 1
 }
+
+# Parse shortcuts.conf into two parallel arrays: SLOT_IDS (desktop files, in
+# dock order) and SLOT_KEYS (GVariant key lists, "[]" for dock-only).
+SLOT_IDS=() SLOT_KEYS=() MISSING=()
+parse_conf() {
+  local line parts app keys id k
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%%#*}"
+    read -ra parts <<<"$line"
+    ((${#parts[@]} >= 2)) || continue
+    app="${parts[-1]}"
+    keys=""
+    for k in "${parts[@]:0:${#parts[@]}-1}"; do
+      [[ "$k" == "-" ]] && continue
+      keys+="${keys:+, }'$k'"
+    done
+    if id="$(find_desktop "$app")"; then
+      SLOT_IDS+=("$id"); SLOT_KEYS+=("[$keys]")
+    else
+      MISSING+=("$app")
+    fi
+  done <"$CONF"
+}
+
+# ── verify: does GNOME match shortcuts.conf right now? ──────────────────────
+if [[ "$MODE" == verify ]]; then
+  parse_conf
+  bad=0
+  mapfile -t live_favs < <(gsettings get org.gnome.shell favorite-apps | tr -d "[]'" | tr ',' '\n' | sed 's/^ *//')
+  for i in "${!SLOT_IDS[@]}"; do
+    n=$((i + 1))
+    want_keys="${SLOT_KEYS[$i]}"; want_app="${SLOT_IDS[$i]}"
+    [[ "$want_keys" == "[]" ]] && continue
+    live_keys="$(gsettings get org.gnome.shell.keybindings "switch-to-application-$n")"
+    live_app="${live_favs[$i]:-<none>}"
+    if [[ "$live_app" == "$want_app" && "$live_keys" == "$want_keys" ]]; then
+      ok "$want_keys → $want_app"
+    else
+      printf '  \033[31m✗\033[0m %s should open %s, but opens %s\n' "$want_keys" "$want_app" "$live_app"
+      bad=1
+    fi
+  done
+  for a in "${MISSING[@]}"; do warn "not installed: $a"; done
+  [[ "$(gsettings get org.gnome.shell.extensions.dash-to-dock hot-keys 2>/dev/null)" == false ]] \
+    || { printf '  \033[31m✗\033[0m Ubuntu Dock still grabs Super+1..9\n'; bad=1; }
+  exit "$bad"
+fi
 
 echo "  keybindings"
 
@@ -102,22 +129,35 @@ for i in $(seq 1 9); do
   gset $SHELL_KB "switch-to-application-$i" "[]"
 done
 
-# 2. Run-or-raise app keys. Favourites order = dock order = key slot.
-favs=() slot=0
-for entry in "${APPS[@]}"; do
-  keys="${entry%%|*}"
-  # shellcheck disable=SC2086
-  if id=$(find_desktop ${entry#*|}); then
-    slot=$((slot + 1))
-    favs+=("'$id'")
-    gset $SHELL_KB "switch-to-application-$slot" "$keys"
-    ok "$keys → $id"
-  else
-    warn "not installed, no key: ${entry#*|}"
-  fi
+# 2. App keys from shortcuts.conf. Dock order = key slot, so the dock is set
+#    to exactly this order, followed by anything else you'd pinned yourself.
+parse_conf
+if ((${#SLOT_IDS[@]} > 9)); then
+  warn "GNOME supports 9 app slots; entries after the 9th get no key"
+fi
+mapfile -t old_favs < <(gsettings get org.gnome.shell favorite-apps | tr -d "[]'" | tr ',' '\n' | sed 's/^ *//' | sed '/^$/d')
+favs=("${SLOT_IDS[@]}")
+for f in "${old_favs[@]}"; do
+  printf '%s\n' "${favs[@]}" | grep -qxF "$f" || favs+=("$f")
 done
-if ((${#favs[@]})); then
-  gset org.gnome.shell favorite-apps "[$(IFS=,; echo "${favs[*]}")]"
+fav_value="[$(printf "'%s'," "${favs[@]}" | sed 's/,$//')]"
+gset org.gnome.shell favorite-apps "$fav_value"
+
+for i in "${!SLOT_IDS[@]}"; do
+  n=$((i + 1)); ((n <= 9)) || break
+  gset $SHELL_KB "switch-to-application-$n" "${SLOT_KEYS[$i]}"
+  [[ "${SLOT_KEYS[$i]}" != "[]" ]] && ok "${SLOT_KEYS[$i]} → ${SLOT_IDS[$i]}"
+done
+for a in "${MISSING[@]}"; do warn "not installed, skipped: $a"; done
+
+# Read the dock back: if GNOME didn't take the order, every key is wrong.
+sleep 1
+live="$(gsettings get org.gnome.shell favorite-apps | tr -d " ")"
+want="$(tr -d " " <<<"$fav_value")"
+if [[ "$live" == "$want" ]]; then
+  ok "dock order matches shortcuts.conf"
+else
+  warn "GNOME changed the dock order after it was set — keys may be off. Run: ~/dotfiles/install.sh check"
 fi
 
 # 3. Workspaces: a fixed four.

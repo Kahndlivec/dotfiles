@@ -57,8 +57,13 @@ App keys are **run-or-raise**: jump to the app if it's open, start it if not.
 | `Super+M` | Spotify | `Super` | search / launch anything |
 | `Super+F` | Files | | |
 
-`Super+←/→/↑` tile and maximise (GNOME defaults). Everything lives in
-`gnome/settings.sh` — edit the `APPS` list at the top, then `./install.sh gnome`.
+`Super+←/→/↑` tile and maximise (GNOME defaults).
+
+**To change an app key, edit `gnome/shortcuts.conf`**, then run
+`./install.sh gnome`. GNOME ties these keys to dock positions, so that file
+also sets the dock order: pin extra apps freely (they go at the end), but don't
+drag or unpin the listed ones — or just re-run `./install.sh gnome` if you do.
+Workspace and window keys are in `gnome/settings.sh`.
 
 Inside the editors the rule is the same everywhere: **leader is `SPC`**,
 `C-h/j/k/l` moves between splits (Emacs, Neovim, tmux panes, VS Code), no Alt

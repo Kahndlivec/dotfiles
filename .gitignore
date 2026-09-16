@@ -14,11 +14,13 @@
 !install.sh
 !packages/*.txt
 !gnome/*.sh
+!gnome/shortcuts.conf
 !env/*.conf
 !systemd/*.service
 
 # Configs
 !zsh/.zshrc
+!zsh/.zprofile
 !git/.gitconfig
 !ghostty/config.ghostty
 !tmux/.tmux.conf
