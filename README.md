@@ -26,7 +26,7 @@ it's safe to re-run at any time. It installs:
 
 | | |
 |---|---|
-| apt (`packages/apt.txt`) | zsh, tmux, git, gh, gcc/g++, gdb, clangd, cmake, ripgrep, fd, direnv, pandoc, emacs-pgtk, TeX Live (LuaLaTeX + org previews), rclone, KeePassXC, build deps for pdf-tools and vterm |
+| apt (`packages/apt.txt`) | zsh, tmux, git, gh, gcc/g++, gdb, clangd, cmake, ripgrep, fd, direnv, pandoc, emacs-pgtk, full TeX Live, rclone, KeePassXC, build deps for pdf-tools and vterm |
 | vendor repos / snaps | VS Code, Brave, Ghostty, Spotify, Telegram, Tailscale |
 | user-level | Neovim (release build), starship, JetBrainsMono Nerd Font, npm globals (`packages/npm.txt`), pipx tools (`packages/pipx.txt`), VS Code extensions |
 | editors | clones Doom and runs `doom install`, restores Neovim plugins from `lazy-lock.json` |
