@@ -28,7 +28,7 @@ it's safe to re-run at any time. It installs:
 |---|---|
 | apt (`packages/apt.txt`) | zsh, tmux, git, gh, gcc/g++, gdb, clangd, cmake, ripgrep, fd, direnv, pandoc, emacs-pgtk, full TeX Live, rclone, KeePassXC, build deps for pdf-tools and vterm |
 | vendor repos / snaps | VS Code, Brave, Ghostty, Spotify, Telegram, Tailscale |
-| user-level | Neovim (release build), starship, JetBrainsMono Nerd Font, npm globals (`packages/npm.txt`), pipx tools (`packages/pipx.txt`), VS Code extensions |
+| user-level | Neovim (release build) + Neovide, starship, JetBrainsMono Nerd Font, npm globals (`packages/npm.txt`), pipx tools (`packages/pipx.txt`), VS Code extensions |
 | editors | clones Doom and runs `doom install`, restores Neovim plugins from `lazy-lock.json` |
 | system | zsh as login shell, a fresh SSH key for this machine, Google Drive mount, GNOME keybindings and settings |
 
@@ -52,12 +52,13 @@ App keys are **run-or-raise**: jump to the app if it's open, start it if not.
 | `Super+E` | Emacs | `Super+1..4` | workspace 1–4 |
 | `Super+T` / `Super+Enter` | Ghostty (tmux) | `Super+Shift+1..4` | move window there |
 | `Super+B` | Brave | `Super+Q` | close window |
-| `Super+V` | VS Code | `Super+Tab` / `Alt+Tab` | apps / windows |
-| `Super+M` | Spotify | `Super+N` | notifications |
-| `Super+F` | Files | `Super` | search / launch anything |
+| `Super+V` | Neovide (Neovim app) | `Super+Tab` / `Alt+Tab` | apps / windows |
+| `Super+C` | VS Code | `Super+N` | notifications |
+| `Super+M` | Spotify | `Super` | search / launch anything |
+| `Super+F` | Files | | |
 
 `Super+←/→/↑` tile and maximise (GNOME defaults). Everything lives in
-`gnome/settings.sh` — edit, then `./install.sh gnome`.
+`gnome/settings.sh` — edit the `APPS` list at the top, then `./install.sh gnome`.
 
 Inside the editors the rule is the same everywhere: **leader is `SPC`**,
 `C-h/j/k/l` moves between splits (Emacs, Neovim, tmux panes, VS Code), no Alt
@@ -76,7 +77,7 @@ branch of `nvim/init.lua`.
 | `nvim/` | `~/.config/nvim` |
 | `vscode/` | `~/.config/Code/User/` |
 | `zsh/.zshrc` | `~/.zshrc` — PATH, `e`/`et`, `cprun`/`cpjudge`, `dotsync` |
-| `ghostty/config` | `~/.config/ghostty/config` — opens straight into tmux session `main` |
+| `ghostty/config.ghostty` | `~/.config/ghostty/config.ghostty` — opens straight into tmux session `main` |
 | `tmux/.tmux.conf` | `~/.tmux.conf` |
 | `git/`, `gh/`, `starship/`, `clang-format/` | the small ones |
 | `ssh/` | `~/.ssh/config` and `known_hosts` (copied, not linked) |

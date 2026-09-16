@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ok() always succeeds, so `a && ok || fail` is safe; "~" in messages is display text.
-# shellcheck disable=SC2015,SC2088
+# shellcheck disable=SC2015,SC2088,SC1091
 # ═══════════════════════════════════════════════════════════════════════════
 #  install.sh — set up an Ubuntu (26.04, GNOME) machine from this repo.
 #
@@ -145,11 +145,26 @@ EOF
   fi
   snap list telegram-desktop >/dev/null 2>&1 && ok "Telegram"
 
-  # Tailscale.
+  # Tailscale — its apt repo, for this Ubuntu release's codename.
   if ! have tailscale; then
-    curl -fsSL https://tailscale.com/install.sh | sh || fail "Tailscale"
+    local code key=/usr/share/keyrings/tailscale-archive-keyring.gpg tmp
+    code="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")"
+    tmp="$(mktemp)"
+    if curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/$code.noarmor.gpg" -o "$tmp" \
+       && curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/$code.tailscale-keyring.list" \
+            | sudo tee /etc/apt/sources.list.d/tailscale.list >/dev/null; then
+      sudo install -m 644 "$tmp" "$key"
+      sudo apt-get update -qq
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tailscale || fail "Tailscale install"
+    else
+      fail "Tailscale repo for Ubuntu '$code' not found"
+    fi
+    rm -f "$tmp"
   fi
-  have tailscale && ok "Tailscale (run: sudo tailscale up)"
+  if have tailscale; then
+    sudo systemctl enable --now tailscaled >/dev/null 2>&1
+    ok "Tailscale (then: sudo tailscale up)"
+  fi
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -181,6 +196,40 @@ install_user_tools() {
     fi
   fi
   have nvim && ok "Neovim $(nvim --version | head -1 | awk '{print $2}')"
+
+  # Neovide — Neovim in its own GPU-rendered window, as a real app (Super+V).
+  # Its settings live in the `if vim.g.neovide` block of nvim/init.lua.
+  if ! have neovide; then
+    mkdir -p "$HOME/.local/opt/neovide"
+    if curl -fsSL https://github.com/neovide/neovide/releases/latest/download/neovide-linux-x86_64.tar \
+         | tar -x -C "$HOME/.local/opt/neovide"; then
+      ln -sf "$HOME/.local/opt/neovide/neovide" "$HOME/.local/bin/neovide"
+    else
+      fail "Neovide download"
+    fi
+  fi
+  if have neovide; then
+    local icons="$HOME/.local/share/icons/hicolor/scalable/apps" apps="$HOME/.local/share/applications"
+    mkdir -p "$icons" "$apps"
+    [[ -f "$icons/neovide.svg" ]] || curl -fsSL -o "$icons/neovide.svg" \
+      https://raw.githubusercontent.com/neovide/neovide/main/assets/neovide.svg || true
+    cat > "$apps/neovide.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=Neovide
+GenericName=Text Editor
+Comment=Neovim in its own window
+Exec=$HOME/.local/bin/neovide --neovim-bin $HOME/.local/bin/nvim %F
+Icon=neovide
+Terminal=false
+Categories=Utility;TextEditor;Development;
+MimeType=text/plain;text/x-c++src;text/x-csrc;text/x-python;text/markdown;
+StartupWMClass=neovide
+StartupNotify=true
+DESKTOP
+    update-desktop-database "$apps" >/dev/null 2>&1 || true
+    ok "Neovide (app grid + Super+V)"
+  fi
 
   # starship
   if ! have starship; then
@@ -242,7 +291,16 @@ install_links() {
   hdr "4  Configs (symlinks)"
   link zsh/.zshrc                 "$HOME/.zshrc"
   link git/.gitconfig             "$HOME/.gitconfig"
-  link ghostty/config             "$HOME/.config/ghostty/config"
+  # Ghostty loads config.ghostty and then the legacy extensionless `config`,
+  # which would override ours — so clear a stale link or old file under that name.
+  local g="$HOME/.config/ghostty"
+  if [[ -L "$g/config" && ! -e "$g/config" ]]; then rm -f "$g/config"; fi
+  if [[ -e "$g/config" && "$(readlink -f "$g/config")" != "$D/ghostty/config.ghostty" ]]; then
+    mkdir -p "$BACKUP" && mv "$g/config" "$BACKUP/ghostty-config" && warn "moved old ghostty/config → $BACKUP/"
+  elif [[ -L "$g/config" ]]; then
+    rm -f "$g/config"
+  fi
+  link ghostty/config.ghostty     "$g/config.ghostty"
   link tmux/.tmux.conf            "$HOME/.tmux.conf"
   link starship/starship.toml     "$HOME/.config/starship.toml"
   link nvim                       "$HOME/.config/nvim"
@@ -354,18 +412,81 @@ install_gnome() {
 check() {
   hdr "Check"
   export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.config/emacs/bin:$PATH"
-  local c
-  for c in zsh tmux git gh rg fd g++ gdb clangd cmake emacs nvim code brave-browser \
+  local c nv
+
+  echo "  ── programs"
+  for c in zsh tmux git gh rg fd g++ gdb clangd cmake emacs nvim neovide code brave-browser \
            ghostty starship node npm pyright claude ruff direnv wl-copy tailscale doom \
            rclone lualatex latexmk dvisvgm; do
     have "$c" && ok "$c" || fail "$c missing"
   done
   snap list spotify >/dev/null 2>&1 && ok "spotify" || fail "spotify missing"
   snap list telegram-desktop >/dev/null 2>&1 && ok "telegram" || fail "telegram missing"
-  systemctl --user is-active rclone-gdrive >/dev/null 2>&1 && ok "Google Drive mounted" || fail "Google Drive not mounted"
   fc-list | grep "JetBrainsMono Nerd Font" >/dev/null && ok "JetBrainsMono Nerd Font" || fail "Nerd Font missing"
-  [[ -L "$HOME/.config/doom" ]] && ok "~/.config/doom linked" || fail "~/.config/doom not linked"
+  if have nvim; then
+    nv="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+    version_ge "$nv" 0.11.0 && ok "nvim $nv (need ≥ 0.11)" || fail "nvim $nv too old"
+  fi
+  [[ -f "$HOME/.local/share/applications/neovide.desktop" ]] && ok "Neovide in app grid" || fail "no Neovide app entry"
+
+  echo "  ── configs linked into the repo"
+  local pair src dst
+  for pair in "zsh/.zshrc:$HOME/.zshrc" "git/.gitconfig:$HOME/.gitconfig" \
+              "ghostty/config.ghostty:$HOME/.config/ghostty/config.ghostty" \
+              "tmux/.tmux.conf:$HOME/.tmux.conf" "starship/starship.toml:$HOME/.config/starship.toml" \
+              "nvim:$HOME/.config/nvim" "doom:$HOME/.config/doom" \
+              "vscode/settings.json:$HOME/.config/Code/User/settings.json" \
+              "vscode/keybindings.json:$HOME/.config/Code/User/keybindings.json" \
+              "env/10-path.conf:$HOME/.config/environment.d/10-path.conf"; do
+    src="$D/${pair%%:*}"; dst="${pair#*:}"
+    if [[ -L "$dst" && "$(readlink -f "$dst")" == "$(readlink -f "$src")" ]]; then ok "${pair%%:*}"
+    else fail "${pair%%:*} not linked (fix: ./install.sh links)"; fi
+  done
+
+  echo "  ── Ghostty"
+  if have ghostty; then
+    ok "$(ghostty --version 2>/dev/null | head -1)"
+    local gv; gv="$(ghostty +validate-config 2>&1)"
+    [[ -z "$gv" ]] && ok "config valid" || fail "config errors: $(echo "$gv" | head -3 | tr '\n' ' ')"
+    [[ -e "$HOME/.config/ghostty/config" ]] && fail "legacy ~/.config/ghostty/config exists and overrides ours"
+  fi
+
+  echo "  ── shell and session"
+  [[ "$(getent passwd "$USER" | cut -d: -f7)" == *zsh ]] && ok "login shell zsh" || fail "login shell is not zsh"
+  systemctl --user show-environment 2>/dev/null | grep '^PATH=' | grep "$HOME/.local/bin" >/dev/null \
+    && ok "GNOME session PATH has ~/.local/bin" || fail "GNOME session PATH lacks ~/.local/bin (log out and in)"
+  [[ "${XDG_SESSION_TYPE:-}" == wayland ]] && ok "Wayland session" || warn "session type: ${XDG_SESSION_TYPE:-unknown}"
+
+  echo "  ── GNOME keys (what GNOME actually has right now)"
+  if have gsettings && [[ "${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]]; then
+    local favs i k
+    favs="$(gsettings get org.gnome.shell favorite-apps | tr -d "[]'" | tr ',' '\n' | sed 's/^ *//')"
+    for i in $(seq 1 9); do
+      k="$(gsettings get org.gnome.shell.keybindings "switch-to-application-$i")"
+      [[ "$k" == "@as []" || "$k" == "[]" ]] && continue
+      printf '     %-30s → %s\n' "$k" "$(sed -n "${i}p" <<<"$favs")"
+    done
+    for i in 1 2 3 4; do
+      printf '     %-30s → workspace %s\n' "$(gsettings get org.gnome.desktop.wm.keybindings "switch-to-workspace-$i")" "$i"
+    done
+    [[ "$(gsettings get org.gnome.shell.extensions.dash-to-dock hot-keys 2>/dev/null)" == false ]] \
+      && ok "dock hot-keys off (Super+1..9 free)" || fail "Ubuntu Dock still grabs Super+1..9"
+    [[ "$(gsettings get org.gnome.mutter dynamic-workspaces)" == false ]] && ok "4 fixed workspaces" || fail "workspaces still dynamic"
+  else
+    warn "not in GNOME — run check from a terminal inside GNOME to see keys"
+  fi
+
+  echo "  ── services and accounts"
+  systemctl is-active tailscaled >/dev/null 2>&1 && ok "tailscaled running" || fail "tailscaled not running"
+  if have tailscale; then
+    tailscale status >/dev/null 2>&1 && ok "Tailscale logged in" || warn "Tailscale not logged in yet (sudo tailscale up)"
+  fi
+  rclone listremotes 2>/dev/null | grep -x "gdrive:" >/dev/null && ok "rclone remote gdrive" || warn "no rclone remote gdrive yet"
+  systemctl --user is-active rclone-gdrive >/dev/null 2>&1 && ok "Google Drive mounted" || warn "Google Drive not mounted yet"
   [[ -f "$HOME/.ssh/id_ed25519.pub" ]] && ok "SSH key" || fail "no SSH key"
+  gh auth status >/dev/null 2>&1 && ok "gh logged in" || warn "gh not logged in yet"
+  [[ -d "$HOME/.config/emacs" ]] && ok "Doom installed" || fail "Doom not installed"
+  [[ -z "$(git -C "$D" status --porcelain)" ]] && ok "dotfiles repo clean" || warn "uncommitted changes: git -C $D status"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════

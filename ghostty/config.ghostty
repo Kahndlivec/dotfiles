@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════
-#  ~/.config/ghostty/config  →  symlink to dotfiles/ghostty/config
+#  ~/.config/ghostty/config.ghostty  →  symlink to dotfiles/ghostty/config.ghostty
 #
 #  tmux owns splits, tabs and sessions. Ghostty's job is to be a fast,
 #  plain window and stay out of the way — so this file is short on

@@ -9,9 +9,10 @@
 #    Super+E        Emacs            Super+1..4        go to workspace
 #    Super+T / ⏎    Ghostty (tmux)   Super+Shift+1..4  send window there
 #    Super+B        Brave            Super+Q           close window
-#    Super+V        VS Code          Super+Tab         switch apps
-#    Super+M        Spotify          Alt+Tab           switch windows
-#    Super+F        Files            Super+N           notifications
+#    Super+V        Neovide (nvim)   Super+Tab         switch apps
+#    Super+C        VS Code          Alt+Tab           switch windows
+#    Super+M        Spotify          Super+N           notifications
+#    Super+F        Files
 #    Super          overview / search / launch anything
 #    Super+←/→/↑    tile left / right / maximise (GNOME default)
 #
@@ -20,9 +21,15 @@
 #  GNOME's own switch-to-application-N mechanism, re-pointed from Super+1..9
 #  to letters — native on Wayland, no extension.
 #
-#  Why no Super+V for Neovim: nvim is the in-terminal editor (Super+T, then
-#  `v file`). VS Code is the second GUI editor you actually switch to all
-#  day, so it gets the key. Change APPS below if you disagree.
+#  ── Changing a key ─────────────────────────────────────────────────────────
+#  Edit the APPS list below (keys on the left, app on the right), then run
+#      ~/dotfiles/install.sh gnome
+#  To look at live values without the script: sudo apt install dconf-editor,
+#  then open /org/gnome/shell/keybindings/ (switch-to-application-N).
+#  Undo everything this file did to keys:
+#      gsettings reset-recursively org.gnome.shell.keybindings
+#      gsettings reset-recursively org.gnome.desktop.wm.keybindings
+#      gsettings reset-recursively org.gnome.shell.extensions.dash-to-dock
 # ═══════════════════════════════════════════════════════════════════════════
 set -uo pipefail
 
@@ -49,13 +56,17 @@ SHELL_KB=org.gnome.shell.keybindings
 MEDIA=org.gnome.settings-daemon.plugins.media-keys
 DOCK=org.gnome.shell.extensions.dash-to-dock
 
-# ── Apps: "key(s)|desktop-id candidates" ────────────────────────────────────
-# Candidates cover apt, snap and flatpak installs; the first one found wins.
+# ═══ EDIT HERE ═══════════════════════════════════════════════════════════════
+# "key(s)|desktop-file candidates". Keys use GNOME syntax: <Super>x,
+# <Super><Shift>x, <Primary> for Ctrl. Candidates cover apt/snap/flatpak
+# installs; the first one found wins. See an app's desktop-file name with:
+#   ls /usr/share/applications ~/.local/share/applications /var/lib/snapd/desktop/applications
 APPS=(
   "['<Super>e']|emacs.desktop emacs_emacs.desktop org.gnu.emacs.desktop"
   "['<Super>t', '<Super>Return']|com.mitchellh.ghostty.desktop ghostty.desktop ghostty_ghostty.desktop"
   "['<Super>b']|brave-browser.desktop com.brave.Browser.desktop brave_brave.desktop"
-  "['<Super>v']|code.desktop com.visualstudio.code.desktop code_code.desktop"
+  "['<Super>v']|neovide.desktop"
+  "['<Super>c']|code.desktop com.visualstudio.code.desktop code_code.desktop"
   "['<Super>m']|spotify_spotify.desktop spotify.desktop com.spotify.Client.desktop"
   "['<Super>f']|org.gnome.Nautilus.desktop"
 )

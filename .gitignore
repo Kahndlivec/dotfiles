@@ -20,7 +20,7 @@
 # Configs
 !zsh/.zshrc
 !git/.gitconfig
-!ghostty/config
+!ghostty/config.ghostty
 !tmux/.tmux.conf
 !starship/starship.toml
 !clang-format/.clang-format
