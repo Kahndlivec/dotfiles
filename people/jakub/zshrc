@@ -1,0 +1,8 @@
+# Jakub's machines — sourced at the end of zsh/.zshrc.
+
+# Wake the desktop tower.
+alias wake-khandlab='wakeonlan b4:2e:99:88:8e:d8'
+
+# Emacs on the desktop, from the ThinkPad: a terminal frame attached to the
+# Emacs session already running there.
+eh() { ssh -t homelab "emacsclient -t -a ''"; }

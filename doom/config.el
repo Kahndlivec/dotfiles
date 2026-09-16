@@ -1,6 +1,6 @@
 ;;; config.el -*- lexical-binding: t; -*-
 ;;
-;; Jakub — Doom Emacs.
+;; Doom Emacs — shared config; who you are comes from people/<you>/doom.el.
 ;; Order of sections: performance, look, editing, notes/org, math, pdf,
 ;; remote, claude, then the CP layer (+cp.el).
 ;;
@@ -8,8 +8,9 @@
 ;; Look up any symbol:    SPC h v / SPC h f
 ;; What is this key:      SPC h k
 
-(setq user-full-name "Jakub"
-      user-mail-address "")
+;; Name and mail for org export etc. — people/<you>/doom.el, linked by install.sh.
+(let ((person (expand-file-name "~/.config/dotfiles/person/doom.el")))
+  (when (file-exists-p person) (load person nil t)))
 
 
 ;;; ---------------------------------------------------------------------

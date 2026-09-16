@@ -4,7 +4,9 @@
 # ═══════════════════════════════════════════════════════════════════════════
 #  install.sh — set up an Ubuntu (26.04, GNOME) machine from this repo.
 #
-#      gh repo clone Kahndlivec/dotfiles ~/dotfiles
+#      gh repo clone Kahndlivec/dotfiles ~/Documents/dotfiles
+#      ln -s ~/Documents/dotfiles ~/dotfiles
+#      ~/dotfiles/install.sh audit      # first, on a machine with an older setup
 #      ~/dotfiles/install.sh
 #
 #  Re-runnable: everything checks before it acts. Run it as yourself (not
@@ -15,6 +17,11 @@
 #      ./install.sh gnome        only GNOME keybindings/settings
 #      ./install.sh drive        only (re)enable the Google Drive mount
 #      ./install.sh check        report what's installed, change nothing
+#      ./install.sh audit        find leftovers from older setups, change nothing
+#
+#  Shared by more than one person: everything personal (git name/email, SSH
+#  hosts, aliases, Emacs identity) lives in people/<name>/. The first run asks
+#  who uses the machine and links ~/.config/dotfiles/person to that folder.
 #
 #  Configs are SYMLINKED, so ~/.zshrc, ~/.config/doom, ~/.config/nvim … are
 #  the repo. Edit them in place, then `dotsync "message"` to commit + push.
@@ -288,8 +295,46 @@ link() { # link <repo-relative> <destination>
   ln -s "$src" "$dst" && ok "$1 → ${dst/#$HOME/\~}"
 }
 
+# ─── who uses this machine ─────────────────────────────────────────────────
+PERSON_LINK="$HOME/.config/dotfiles/person"
+choose_person() {
+  if [[ -L "$PERSON_LINK" && -d "$PERSON_LINK" ]]; then
+    PERSON="$(basename "$(readlink -f "$PERSON_LINK")")"
+    sk "person: $PERSON"
+    return 0
+  fi
+  if [[ ! -t 0 ]]; then
+    fail "can't ask who uses this machine without a terminal — run ./install.sh links in one"
+    return 1
+  fi
+  local known
+  known="$(find "$D/people" -mindepth 1 -maxdepth 1 -type d -printf '%f ' 2>/dev/null)"
+  echo
+  echo "  Who uses this machine? Existing: ${known:-none}"
+  read -rp "  Name (lowercase, e.g. matej): " PERSON
+  PERSON="$(tr '[:upper:]' '[:lower:]' <<<"$PERSON" | tr -cd 'a-z0-9-')"
+  [[ -n "$PERSON" ]] || { fail "no name given"; return 1; }
+  local dir="$D/people/$PERSON"
+  if [[ ! -d "$dir" ]]; then
+    local full gname gmail
+    echo "  New person — three questions, saved in people/$PERSON/:"
+    read -rp "  Full name (Emacs/org author): " full
+    read -rp "  Git name (shown on commits, e.g. your GitHub username): " gname
+    read -rp "  Git email (the one on your GitHub account): " gmail
+    mkdir -p "$dir"
+    printf '# Git identity for %s.\n[user]\n\tname = %s\n\temail = %s\n' "$PERSON" "$gname" "$gmail" > "$dir/gitconfig"
+    printf ';;; doom.el — identity for Emacs.  -*- lexical-binding: t; -*-\n(setq user-full-name "%s"\n      user-mail-address "%s")\n' "$full" "$gmail" > "$dir/doom.el"
+    printf '# %s: aliases and functions for your machines — sourced at the end of zsh/.zshrc.\n' "$PERSON" > "$dir/zshrc"
+    printf '# %s: your SSH hosts — copied to ~/.ssh/config.d/person.conf.\n' "$PERSON" > "$dir/ssh_config"
+    ok "created people/$PERSON — commit it later: dotsync \"add $PERSON\""
+  fi
+  mkdir -p "$(dirname "$PERSON_LINK")"
+  ln -sfn "$dir" "$PERSON_LINK" && ok "person: $PERSON"
+}
+
 install_links() {
   hdr "4  Configs (symlinks)"
+  choose_person
   link zsh/.zshrc                 "$HOME/.zshrc"
   link zsh/.zprofile              "$HOME/.zprofile"
   link git/.gitconfig             "$HOME/.gitconfig"
@@ -318,15 +363,20 @@ install_links() {
     mkdir -p "$HOME/.config/gh" && cp "$D/gh/config.yml" "$HOME/.config/gh/config.yml" && ok "gh/config.yml (copied)"
   fi
 
-  # SSH: copied, because ssh is strict about permissions and ownership.
-  mkdir -p "$HOME/.ssh/cm" && chmod 700 "$HOME/.ssh"
-  local f
-  for f in config known_hosts; do
-    if [[ -f "$D/ssh/$f" ]] && ! cmp -s "$D/ssh/$f" "$HOME/.ssh/$f"; then
-      [[ -f "$HOME/.ssh/$f" ]] && { mkdir -p "$BACKUP"; cp "$HOME/.ssh/$f" "$BACKUP/ssh_$f"; }
-      cp "$D/ssh/$f" "$HOME/.ssh/$f" && chmod 600 "$HOME/.ssh/$f" && ok "ssh/$f (copied)"
-    fi
-  done
+  # SSH: copied, because ssh refuses config files other users could write —
+  # and git checks files out group-writable on Ubuntu. known_hosts is never
+  # touched: it's this machine's own record of servers.
+  mkdir -p "$HOME/.ssh/cm" "$HOME/.ssh/config.d" && chmod 700 "$HOME/.ssh" "$HOME/.ssh/cm" "$HOME/.ssh/config.d"
+  if ! cmp -s "$D/ssh/config" "$HOME/.ssh/config"; then
+    [[ -f "$HOME/.ssh/config" ]] && { mkdir -p "$BACKUP"; cp "$HOME/.ssh/config" "$BACKUP/ssh_config"; \
+      warn "old ~/.ssh/config saved to $BACKUP/ssh_config — move any hosts you need into people/${PERSON:-you}/ssh_config"; }
+    cp "$D/ssh/config" "$HOME/.ssh/config" && chmod 600 "$HOME/.ssh/config" && ok "ssh/config (copied)"
+  fi
+  if [[ -n "${PERSON:-}" && -f "$D/people/$PERSON/ssh_config" ]] \
+     && ! cmp -s "$D/people/$PERSON/ssh_config" "$HOME/.ssh/config.d/person.conf"; then
+    cp "$D/people/$PERSON/ssh_config" "$HOME/.ssh/config.d/person.conf" \
+      && chmod 600 "$HOME/.ssh/config.d/person.conf" && ok "people/$PERSON/ssh_config → ~/.ssh/config.d/person.conf"
+  fi
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -445,6 +495,15 @@ check() {
     else fail "${pair%%:*} not linked (fix: ./install.sh links)"; fi
   done
 
+  echo "  ── person"
+  if [[ -L "$PERSON_LINK" && -d "$PERSON_LINK" ]]; then
+    ok "person: $(basename "$(readlink -f "$PERSON_LINK")")"
+    local gu; gu="$(git config --global --includes user.name)"
+    [[ -n "$gu" ]] && ok "git identity: $gu <$(git config --global --includes user.email)>" || fail "git has no user.name"
+  else
+    fail "no person chosen (fix: ./install.sh links)"
+  fi
+
   echo "  ── Ghostty"
   if have ghostty; then
     ok "$(ghostty --version 2>/dev/null | head -1)"
@@ -484,6 +543,127 @@ check() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  audit — leftovers from older setups. Reports only; changes nothing.
+# ═══════════════════════════════════════════════════════════════════════════
+FOUND=0
+found() { printf '  \033[33m•\033[0m %s\n' "$1"; FOUND=$((FOUND + 1)); }
+
+audit() {
+  hdr "Audit — leftovers from other setups (nothing is changed)"
+  local realD l t f x
+  realD="$(readlink -f "$D")"
+
+  echo "  ── other dotfiles folders"
+  while IFS= read -r x; do
+    [[ "$(readlink -f "$x")" == "$realD" ]] && continue
+    found "folder: ${x/#$HOME/\~}"
+  done < <(find "$HOME" -maxdepth 4 \( -path "$HOME/.cache" -o -path "$HOME/.local/share/Trash" -o -path "$HOME/snap" \) -prune \
+             -o -type d -iname '*dotfiles*' -print 2>/dev/null)
+
+  echo "  ── symlinks that point nowhere or into another dotfiles copy"
+  while IFS= read -r l; do
+    [[ "$l" == "$HOME/dotfiles" ]] && continue
+    t="$(readlink "$l")"
+    if [[ ! -e "$l" ]]; then
+      found "broken link: ${l/#$HOME/\~} → $t"
+    elif [[ "$t" == *dotfiles* && "$(readlink -f "$l")" != "$realD"* ]]; then
+      found "link into another dotfiles: ${l/#$HOME/\~} → $t"
+    fi
+  done < <(find "$HOME" -maxdepth 1 -type l 2>/dev/null
+           find "$HOME/.config" "$HOME/.local/bin" "$HOME/.local/share/applications" -maxdepth 2 -type l 2>/dev/null)
+
+  echo "  ── files that override or shadow this setup"
+  for f in .emacs .emacs.el .emacs.d; do
+    [[ -e "$HOME/$f" ]] && found "~/$f — Emacs loads this INSTEAD of Doom"
+  done
+  [[ -e "$HOME/.config/git/config" ]] && found "~/.config/git/config — git reads it on top of ~/.gitconfig"
+  for f in .zshenv .zlogin .zlogout .bash_profile; do
+    [[ -e "$HOME/$f" && ! -L "$HOME/$f" ]] && found "~/$f — also read at login; check what it adds"
+  done
+  [[ -e "$HOME/.config/tmux/tmux.conf" ]] && found "~/.config/tmux/tmux.conf — old tmux config (ours is ~/.tmux.conf)"
+  [[ -e "$HOME/.config/ghostty/config" && ! -L "$HOME/.config/ghostty/config" ]] && found "~/.config/ghostty/config — legacy Ghostty config, overrides ours"
+  for x in .oh-my-zsh .zinit .local/share/zinit .zim .zplug .antidote .p10k.zsh .tmux/plugins .local/share/nvim/site/pack/packer; do
+    [[ -e "$HOME/$x" ]] && found "~/$x — plugin/framework from an older shell or editor setup"
+  done
+  for f in .profile .bashrc; do
+    [[ -f "$HOME/$f" ]] && grep -nE 'linuxbrew|dotfiles|nvm|pyenv|asdf|mise|oh-my' "$HOME/$f" 2>/dev/null \
+      | while IFS= read -r x; do found "~/$f:$x"; done
+  done
+
+  echo "  ── second copies of tools"
+  [[ -d /home/linuxbrew/.linuxbrew || -d "$HOME/.linuxbrew" ]] && found "Homebrew on Linux — its tools can shadow the apt ones"
+  for x in .nvm .volta .local/share/fnm .pyenv .asdf .local/share/mise; do
+    [[ -d "$HOME/$x" ]] && found "~/$x — version manager; its node/python can shadow apt's"
+  done
+  dpkg -s neovim >/dev/null 2>&1 && found "apt neovim — old version next to ours in ~/.local/bin (sudo apt remove neovim)"
+  local emacs_bin; emacs_bin="$(readlink -f /usr/bin/emacs 2>/dev/null)"
+  [[ -n "$emacs_bin" && "$emacs_bin" != *pgtk* ]] && found "/usr/bin/emacs is $emacs_bin, not the Wayland build (emacs-pgtk)"
+  snap list emacs >/dev/null 2>&1 && found "Emacs snap installed as well"
+  local pair name deb snp flat n
+  for pair in "VS Code:code:code:com.visualstudio.code" "Brave:brave-browser:brave:com.brave.Browser" \
+              "Ghostty:ghostty:ghostty:com.mitchellh.ghostty" "Spotify:spotify-client:spotify:com.spotify.Client" \
+              "Telegram:telegram-desktop:telegram-desktop:org.telegram.desktop"; do
+    IFS=: read -r name deb snp flat <<<"$pair"
+    n=0; x=""
+    dpkg -s "$deb" >/dev/null 2>&1 && { n=$((n + 1)); x+=" apt"; }
+    snap list "$snp" >/dev/null 2>&1 && { n=$((n + 1)); x+=" snap"; }
+    have flatpak && flatpak info "$flat" >/dev/null 2>&1 && { n=$((n + 1)); x+=" flatpak"; }
+    ((n > 1)) && found "$name installed $n times:$x — keep one"
+  done
+
+  echo "  ── apt"
+  apt-cache policy 2>&1 >/dev/null | grep -E '^(E|W):' | sort -u | while IFS= read -r x; do found "apt: $x"; done
+  for x in packages.microsoft.com/repos/code brave-browser-apt-release pkgs.tailscale.com; do
+    n="$(grep -rlsE "^[^#]*$x" /etc/apt/sources.list /etc/apt/sources.list.d | wc -l)"
+    ((n > 1)) && found "repo added $n times: $x — $(grep -rlsE "^[^#]*$x" /etc/apt/sources.list /etc/apt/sources.list.d | tr '\n' ' ')"
+  done
+
+  echo "  ── things that start by themselves"
+  for f in "$HOME"/.config/autostart/*.desktop; do
+    [[ -f "$f" ]] && found "autostart: $(basename "$f") → $(grep -m1 '^Exec=' "$f" | cut -d= -f2-)"
+  done
+  for f in "$HOME"/.config/systemd/user/*.service "$HOME"/.config/systemd/user/*.timer; do
+    [[ -f "$f" && "$(basename "$f")" != rclone-gdrive.service ]] && found "systemd user unit: $(basename "$f")"
+  done
+  crontab -l 2>/dev/null | grep -vE '^\s*(#|$)' | while IFS= read -r x; do found "crontab: $x"; done
+
+  if have gsettings && [[ "${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]]; then
+    echo "  ── GNOME"
+    local paths p
+    paths="$(gsettings get org.gnome.settings-daemon.plugins.media-keys custom-keybindings 2>/dev/null | tr -d "[]'@as" | tr ',' ' ')"
+    for p in $paths; do
+      found "custom shortcut: $(gsettings get "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$p" binding) → $(gsettings get "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$p" command)"
+    done
+    have gnome-extensions && gnome-extensions list --enabled 2>/dev/null \
+      | grep -vE '^(ubuntu-dock@ubuntu.com|ding@rastersoft.com|ubuntu-appindicators@ubuntu.com|tiling-assistant@leleat-on-github|snapd-prompting@canonical.com)$' \
+      | while IFS= read -r x; do found "GNOME extension enabled: $x"; done
+  fi
+
+  echo "  ── state an older config left behind (safe to rebuild)"
+  if [[ -d "$HOME/.config/emacs" ]]; then
+    [[ -x "$HOME/.config/emacs/bin/doom" ]] \
+      && found "~/.config/emacs — existing Doom install, packages built for whatever config it had" \
+      || found "~/.config/emacs — an Emacs config that isn't Doom"
+  fi
+  if [[ -d "$HOME/.local/share/nvim" && "$(readlink -f "$HOME/.config/nvim")" != "$realD/nvim" ]]; then
+    found "~/.local/share/nvim — plugins from a different Neovim config"
+  fi
+  if [[ -f "$HOME/.ssh/config" ]] && ! cmp -s "$D/ssh/config" "$HOME/.ssh/config"; then
+    found "~/.ssh/config differs — it will be replaced (backed up). Hosts in it: $(grep -iE '^\s*Host\s' "$HOME/.ssh/config" | awk '{$1=""; print}' | tr '\n' ' ')"
+  fi
+  if [[ -f "$HOME/.gitconfig" && ! -L "$HOME/.gitconfig" ]]; then
+    found "~/.gitconfig is a plain file ($(git config --file "$HOME/.gitconfig" user.name) <$(git config --file "$HOME/.gitconfig" user.email)>) — it will be replaced (backed up)"
+  fi
+
+  echo
+  if ((FOUND)); then
+    printf '  \033[1m%d thing(s) to look at.\033[0m Nothing was changed. Paste this output to decide what to clean.\n' "$FOUND"
+  else
+    ok "nothing left over — safe to run ./install.sh"
+  fi
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
 case "$MODE" in
   all)
     start_sudo
@@ -500,7 +680,8 @@ case "$MODE" in
   gnome) install_gnome ;;
   drive) install_drive ;;
   check) check ;;
-  *) echo "usage: $0 [all|links|gnome|drive|check]"; exit 1 ;;
+  audit) audit ;;
+  *) echo "usage: $0 [all|links|gnome|drive|check|audit]"; exit 1 ;;
 esac
 
 hdr "Done"
@@ -509,6 +690,7 @@ if ((${#FAILED[@]})); then
   printf '    - %s\n' "${FAILED[@]}"
 fi
 [[ -d "$BACKUP" ]] && echo "  Replaced files were backed up to: $BACKUP"
+[[ "$MODE" == audit ]] && exit 0
 if [[ "$MODE" == all ]]; then
   cat <<'EOF'
 

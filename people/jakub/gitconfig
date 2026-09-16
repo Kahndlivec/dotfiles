@@ -1,0 +1,5 @@
+# Git identity for Jakub — included from git/.gitconfig via
+# ~/.config/dotfiles/person/gitconfig.
+[user]
+	name = Kahndlivec
+	email = jakub.smida.2007@gmail.com

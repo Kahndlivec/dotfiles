@@ -48,10 +48,6 @@ et() {
   emacsclient -t "$@" 2>/dev/null || emacs -nw "$@"
 }
 
-# Emacs on the desktop, from the ThinkPad: a terminal frame attached to the
-# Emacs session already running there.
-eh() { ssh -t homelab "emacsclient -t -a ''"; }
-
 alias doomsync='doom sync && doom doctor'
 alias v=nvim
 
@@ -100,8 +96,10 @@ cpush() { git add -A && git commit -m "$1" && git push; }
 # ─── tmux ──────────────────────────────────────────────────────────
 alias ta='tmux attach || tmux new'
 
-# ─── Machines ──────────────────────────────────────────────────────
-alias wake-khandlab='wakeonlan b4:2e:99:88:8e:d8'
+# ─── Per person, then per machine ──────────────────────────────────
+# people/<you>/zshrc (synced), then ~/.zshrc.local (this machine only).
+[[ -r ~/.config/dotfiles/person/zshrc ]] && source ~/.config/dotfiles/person/zshrc
+[[ -r ~/.zshrc.local ]] && source ~/.zshrc.local
 
 # ─── Plugins (syntax-highlighting must be sourced last) ────────────
 command -v starship >/dev/null && eval "$(starship init zsh)"

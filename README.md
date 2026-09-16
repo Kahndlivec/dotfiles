@@ -17,9 +17,15 @@ work. **Neovim** is the in-terminal editor. Ghostty and tmux own the terminal.
 ```bash
 sudo apt install -y git gh
 gh auth login                                  # pick SSH; works for a private repo
-gh repo clone Kahndlivec/dotfiles ~/dotfiles
+gh repo clone Kahndlivec/dotfiles ~/Documents/dotfiles
+ln -s ~/Documents/dotfiles ~/dotfiles         # everything refers to ~/dotfiles
+~/dotfiles/install.sh audit                   # machine had another setup before? look first
 ~/dotfiles/install.sh
 ```
+
+The repo lives in `~/Documents/dotfiles`; `~/dotfiles` is a shortcut to it.
+Configs link into it, so **don't move or rename that folder** — if you ever
+must, run `./install.sh links` from the new place straight after.
 
 Run it from a terminal inside GNOME, as yourself. It asks for sudo once, and
 it's safe to re-run at any time. It installs:
@@ -41,6 +47,7 @@ Emacs, and sign in to Brave Sync, Spotify and Telegram.
 ./install.sh gnome    # only re-apply GNOME keybindings/settings
 ./install.sh drive    # only (re)enable the Google Drive mount
 ./install.sh check    # report what's installed, change nothing
+./install.sh audit    # find leftovers from an older setup, change nothing
 ```
 
 ## Keys (GNOME)
@@ -85,9 +92,27 @@ branch of `nvim/init.lua`.
 | `ghostty/config.ghostty` | `~/.config/ghostty/config.ghostty` — opens straight into tmux session `main` |
 | `tmux/.tmux.conf` | `~/.tmux.conf` |
 | `git/`, `gh/`, `starship/`, `clang-format/` | the small ones |
-| `ssh/` | `~/.ssh/config` and `known_hosts` (copied, not linked) |
+| `ssh/config` | `~/.ssh/config` (copied, not linked) |
+| `people/` | per-person identity, hosts and aliases |
 | `hhkb/` | Linux layout, how to flash it, old layout backup |
 | `systemd/` | `~/.config/systemd/user/` — the Google Drive mount |
+
+## More than one person
+
+The setup is shared; identity isn't. Everything personal lives in
+`people/<name>/`:
+
+| File | Used for |
+|---|---|
+| `gitconfig` | git name and email |
+| `doom.el` | name and mail in Emacs (org export) |
+| `zshrc` | your own aliases and functions (`wake-…`, `eh`) |
+| `ssh_config` | your SSH hosts |
+
+The first `install.sh` run asks who uses the machine and links
+`~/.config/dotfiles/person` to that folder; a new name gets its folder created
+from three questions — commit it with `dotsync "add <name>"`. Machine-only
+extras go in `~/.zshrc.local` or `~/.ssh/config.d/`, which aren't synced.
 
 ## Google Drive
 

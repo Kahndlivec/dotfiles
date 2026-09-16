@@ -1,22 +1,9 @@
 # ~/.ssh/config — copied (not symlinked) by install.sh, because ssh is
 # strict about permissions on this file.
 
-# The desktop tower, over Tailscale — use from the ThinkPad.
-Host khandlab
-    HostName khandlab.tailf80156.ts.net
-    User khand
-
-# Same box for TRAMP and `eh`: `/ssh:homelab:~/`. TRAMP parses the remote
-# shell prompt, and a TTY confuses it.
-Host homelab
-    HostName khandlab.tailf80156.ts.net
-    User khand
-    RequestTTY no
-
-Host homelab-lan
-    HostName 192.168.99.250
-    User khand
-    RequestTTY no
+# Your own hosts live in people/<you>/ssh_config, copied here by install.sh.
+# Anything machine-only can go in another file in ~/.ssh/config.d/.
+Include ~/.ssh/config.d/*.conf
 
 # Defaults for every host — kept last, since ssh takes the FIRST value it
 # sees for each option.
