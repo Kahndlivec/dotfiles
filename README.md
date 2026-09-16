@@ -28,7 +28,7 @@ it's safe to re-run at any time. It installs:
 |---|---|
 | apt (`packages/apt.txt`) | zsh, tmux, git, gh, gcc/g++, gdb, clangd, cmake, ripgrep, fd, direnv, pandoc, emacs-pgtk, full TeX Live, rclone, KeePassXC, build deps for pdf-tools and vterm |
 | vendor repos / snaps | VS Code, Brave, Ghostty, Spotify, Telegram, Tailscale |
-| user-level | Neovim (release build) + Neovide, starship, JetBrainsMono Nerd Font, npm globals (`packages/npm.txt`), pipx tools (`packages/pipx.txt`), VS Code extensions |
+| user-level | Neovim (release build, with its app icon), starship, JetBrainsMono Nerd Font, npm globals (`packages/npm.txt`), pipx tools (`packages/pipx.txt`), VS Code extensions |
 | editors | clones Doom and runs `doom install`, restores Neovim plugins from `lazy-lock.json` |
 | system | zsh as login shell, a fresh SSH key for this machine, Google Drive mount, GNOME keybindings and settings |
 
@@ -52,7 +52,7 @@ App keys are **run-or-raise**: jump to the app if it's open, start it if not.
 | `Super+E` | Emacs | `Super+1..4` | workspace 1–4 |
 | `Super+T` / `Super+Enter` | Ghostty (tmux) | `Super+Shift+1..4` | move window there |
 | `Super+B` | Brave | `Super+Q` | close window |
-| `Super+V` | Neovide (Neovim app) | `Super+Tab` / `Alt+Tab` | apps / windows |
+| `Super+V` | Neovim (own window) | `Super+Tab` / `Alt+Tab` | apps / windows |
 | `Super+C` | VS Code | `Super+N` | notifications |
 | `Super+M` | Spotify | `Super` | search / launch anything |
 | `Super+F` | Files | | |

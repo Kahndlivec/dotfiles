@@ -9,7 +9,7 @@
 #    Super+E        Emacs            Super+1..4        go to workspace
 #    Super+T / ⏎    Ghostty (tmux)   Super+Shift+1..4  send window there
 #    Super+B        Brave            Super+Q           close window
-#    Super+V        Neovide (nvim)   Super+Tab         switch apps
+#    Super+V        Neovim           Super+Tab         switch apps
 #    Super+C        VS Code          Alt+Tab           switch windows
 #    Super+M        Spotify          Super+N           notifications
 #    Super+F        Files
@@ -65,7 +65,7 @@ APPS=(
   "['<Super>e']|emacs.desktop emacs_emacs.desktop org.gnu.emacs.desktop"
   "['<Super>t', '<Super>Return']|com.mitchellh.ghostty.desktop ghostty.desktop ghostty_ghostty.desktop"
   "['<Super>b']|brave-browser.desktop com.brave.Browser.desktop brave_brave.desktop"
-  "['<Super>v']|neovide.desktop"
+  "['<Super>v']|io.neovim.nvim.desktop"
   "['<Super>c']|code.desktop com.visualstudio.code.desktop code_code.desktop"
   "['<Super>m']|spotify_spotify.desktop spotify.desktop com.spotify.Client.desktop"
   "['<Super>f']|org.gnome.Nautilus.desktop"

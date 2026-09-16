@@ -197,39 +197,40 @@ install_user_tools() {
   fi
   have nvim && ok "Neovim $(nvim --version | head -1 | awk '{print $2}')"
 
-  # Neovide — Neovim in its own GPU-rendered window, as a real app (Super+V).
-  # Its settings live in the `if vim.g.neovide` block of nvim/init.lua.
-  if ! have neovide; then
-    mkdir -p "$HOME/.local/opt/neovide"
-    if curl -fsSL https://github.com/neovide/neovide/releases/latest/download/neovide-linux-x86_64.tar \
-         | tar -x -C "$HOME/.local/opt/neovide"; then
-      ln -sf "$HOME/.local/opt/neovide/neovide" "$HOME/.local/bin/neovide"
-    else
-      fail "Neovide download"
-    fi
-  fi
-  if have neovide; then
-    local icons="$HOME/.local/share/icons/hicolor/scalable/apps" apps="$HOME/.local/share/applications"
-    mkdir -p "$icons" "$apps"
-    [[ -f "$icons/neovide.svg" ]] || curl -fsSL -o "$icons/neovide.svg" \
-      https://raw.githubusercontent.com/neovide/neovide/main/assets/neovide.svg || true
-    cat > "$apps/neovide.desktop" <<DESKTOP
+  # "Neovim" app: the Neovim logo in the app grid and on Super+V. Opens nvim
+  # straight away in its own Ghostty window — no tmux, no shell. The --class
+  # gives that window its own identity, so GNOME shows it as Neovim (not as
+  # another Ghostty) and Super+V / Super+T each raise the right window.
+  local apps="$HOME/.local/share/applications" icons="$HOME/.local/share/icons/hicolor/128x128/apps"
+  local nvim_dir="$HOME/.local/opt/nvim-linux-x86_64"
+  [[ "$ARCH" == arm64 ]] && nvim_dir="$HOME/.local/opt/nvim-linux-arm64"
+  mkdir -p "$apps" "$icons"
+  [[ -f "$nvim_dir/share/icons/hicolor/128x128/apps/nvim.png" ]] \
+    && cp "$nvim_dir/share/icons/hicolor/128x128/apps/nvim.png" "$icons/nvim.png"
+  cat > "$apps/io.neovim.nvim.desktop" <<DESKTOP
 [Desktop Entry]
 Type=Application
-Name=Neovide
+Name=Neovim
 GenericName=Text Editor
-Comment=Neovim in its own window
-Exec=$HOME/.local/bin/neovide --neovim-bin $HOME/.local/bin/nvim %F
-Icon=neovide
+Comment=Edit text files
+Exec=ghostty --class=io.neovim.nvim -e $HOME/.local/bin/nvim %F
+Icon=nvim
 Terminal=false
 Categories=Utility;TextEditor;Development;
-MimeType=text/plain;text/x-c++src;text/x-csrc;text/x-python;text/markdown;
-StartupWMClass=neovide
+MimeType=text/plain;text/x-c++src;text/x-csrc;text/x-chdr;text/x-c++hdr;text/x-python;text/markdown;application/x-shellscript;
+StartupWMClass=io.neovim.nvim
 StartupNotify=true
 DESKTOP
-    update-desktop-database "$apps" >/dev/null 2>&1 || true
-    ok "Neovide (app grid + Super+V)"
+
+  # Remove the Neovide install from the previous version of this script.
+  if [[ -e "$HOME/.local/opt/neovide" || -e "$apps/neovide.desktop" ]]; then
+    rm -rf "$HOME/.local/opt/neovide" "$HOME/.local/bin/neovide" "$apps/neovide.desktop" \
+      "$HOME/.local/share/icons/hicolor/scalable/apps/neovide.svg"
+    ok "removed Neovide"
   fi
+  update-desktop-database "$apps" >/dev/null 2>&1 || true
+  gtk-update-icon-cache -f -t "$HOME/.local/share/icons/hicolor" >/dev/null 2>&1 || true
+  ok "Neovim app (app grid + Super+V)"
 
   # starship
   if ! have starship; then
@@ -415,7 +416,7 @@ check() {
   local c nv
 
   echo "  ── programs"
-  for c in zsh tmux git gh rg fd g++ gdb clangd cmake emacs nvim neovide code brave-browser \
+  for c in zsh tmux git gh rg fd g++ gdb clangd cmake emacs nvim code brave-browser \
            ghostty starship node npm pyright claude ruff direnv wl-copy tailscale doom \
            rclone lualatex latexmk dvisvgm; do
     have "$c" && ok "$c" || fail "$c missing"
@@ -427,7 +428,7 @@ check() {
     nv="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
     version_ge "$nv" 0.11.0 && ok "nvim $nv (need ≥ 0.11)" || fail "nvim $nv too old"
   fi
-  [[ -f "$HOME/.local/share/applications/neovide.desktop" ]] && ok "Neovide in app grid" || fail "no Neovide app entry"
+  [[ -f "$HOME/.local/share/applications/io.neovim.nvim.desktop" ]] && ok "Neovim app in app grid" || fail "no Neovim app entry"
 
   echo "  ── configs linked into the repo"
   local pair src dst
