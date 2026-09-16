@@ -26,19 +26,20 @@ it's safe to re-run at any time. It installs:
 
 | | |
 |---|---|
-| apt (`packages/apt.txt`) | zsh, tmux, git, gh, gcc/g++, gdb, clangd, cmake, ripgrep, fd, direnv, pandoc, emacs-pgtk, KeePassXC, build deps for pdf-tools and vterm |
-| vendor repos / snaps | VS Code, Brave, Ghostty, Spotify, Tailscale |
+| apt (`packages/apt.txt`) | zsh, tmux, git, gh, gcc/g++, gdb, clangd, cmake, ripgrep, fd, direnv, pandoc, emacs-pgtk, TeX Live (LuaLaTeX + org previews), rclone, KeePassXC, build deps for pdf-tools and vterm |
+| vendor repos / snaps | VS Code, Brave, Ghostty, Spotify, Telegram, Tailscale |
 | user-level | Neovim (release build), starship, JetBrainsMono Nerd Font, npm globals (`packages/npm.txt`), pipx tools (`packages/pipx.txt`), VS Code extensions |
 | editors | clones Doom and runs `doom install`, restores Neovim plugins from `lazy-lock.json` |
-| system | zsh as login shell, a fresh SSH key for this machine, GNOME keybindings and settings |
+| system | zsh as login shell, a fresh SSH key for this machine, Google Drive mount, GNOME keybindings and settings |
 
-Then once, by hand: log out and back in, `gh ssh-key add ~/.ssh/id_ed25519.pub`
-(the key install.sh just made), `sudo tailscale up`, `M-x pdf-tools-install` in Emacs, and
-Brave Sync.
+Then once, by hand: log out and back in, register the new SSH key with GitHub,
+`sudo tailscale up`, set up Google Drive (below), `M-x pdf-tools-install` in
+Emacs, and sign in to Brave Sync, Spotify and Telegram.
 
 ```bash
 ./install.sh links    # only re-link configs
 ./install.sh gnome    # only re-apply GNOME keybindings/settings
+./install.sh drive    # only (re)enable the Google Drive mount
 ./install.sh check    # report what's installed, change nothing
 ```
 
@@ -79,7 +80,28 @@ branch of `nvim/init.lua`.
 | `tmux/.tmux.conf` | `~/.tmux.conf` |
 | `git/`, `gh/`, `starship/`, `clang-format/` | the small ones |
 | `ssh/` | `~/.ssh/config` and `known_hosts` (copied, not linked) |
-| `hhkb/` | keyboard firmware layout backup and pictures |
+| `hhkb/` | Linux layout, how to flash it, old layout backup |
+| `systemd/` | `~/.config/systemd/user/` — the Google Drive mount |
+
+## Google Drive
+
+There's no Google Drive app for Linux, so rclone mounts it at `~/GoogleDrive`
+(files download on demand, like the Mac app). One-time setup:
+
+```bash
+rclone config        # n → name: gdrive → storage: drive → Enter through the
+                     # rest (defaults) → "auto config" y → sign in in the browser
+./install.sh drive   # starts the mount now and at every login
+```
+
+GoodNotes exports land there; drag them into org buffers. Keep the org notes
+themselves in `~/Documents/notes` on local disk — autosave onto a network
+mount is slow and makes conflict copies.
+
+## HHKB
+
+The keyboard's layout lives in its firmware, so it follows the keyboard to any
+machine. See `hhkb/README.md` for the Linux layout and how to flash it.
 
 ## Editing
 

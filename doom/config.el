@@ -444,8 +444,9 @@ screen instead of halfway between two."
 ;;; ---------------------------------------------------------------------
 ;;; 4. Notes: org + denote
 ;;; ---------------------------------------------------------------------
-;; Single source of truth. Put this directory inside your Google Drive
-;; mirror if you want the iPad to see it — see SETUP.md, section "iPad".
+;; Single source of truth, on local disk. Google Drive is mounted at
+;; ~/GoogleDrive (rclone) — GoodNotes exports are reachable there, but don't
+;; keep org files ON the mount: autosave over FUSE is slow and conflict-prone.
 (setq org-directory (expand-file-name "~/Documents/notes/"))
 
 (defvar +notes-attachments-dir (expand-file-name "assets/" org-directory)

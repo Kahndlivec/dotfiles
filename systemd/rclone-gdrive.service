@@ -1,0 +1,25 @@
+# ~/.config/systemd/user/rclone-gdrive.service — copied by install.sh
+#
+# Mounts your Google Drive at ~/GoogleDrive, files on demand, like the Mac
+# Drive app. Needs an rclone remote called "gdrive" (see README → Google Drive).
+#
+#   systemctl --user status rclone-gdrive      is it up?
+#   systemctl --user restart rclone-gdrive     after a network change, if stuck
+#   journalctl --user -u rclone-gdrive -e      why it isn't
+[Unit]
+Description=Google Drive at ~/GoogleDrive (rclone)
+
+[Service]
+Type=notify
+ExecStartPre=/usr/bin/mkdir -p %h/GoogleDrive
+ExecStart=/usr/bin/rclone mount gdrive: %h/GoogleDrive \
+    --vfs-cache-mode full \
+    --vfs-cache-max-size 10G \
+    --dir-cache-time 5m \
+    --poll-interval 1m
+ExecStop=/usr/bin/fusermount3 -uz %h/GoogleDrive
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=default.target

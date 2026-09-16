@@ -13,6 +13,7 @@
 #      ./install.sh              everything
 #      ./install.sh links        only re-link configs
 #      ./install.sh gnome        only GNOME keybindings/settings
+#      ./install.sh drive        only (re)enable the Google Drive mount
 #      ./install.sh check        report what's installed, change nothing
 #
 #  Configs are SYMLINKED, so ~/.zshrc, ~/.config/doom, ~/.config/nvim … are
@@ -70,7 +71,8 @@ install_apt() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  2. Apps from their vendors: VS Code, Brave, Ghostty, Spotify, Tailscale
+#  2. Apps from their vendors: VS Code, Brave, Ghostty, Spotify, Telegram,
+#     Tailscale
 # ═══════════════════════════════════════════════════════════════════════════
 add_keyring() { # add_keyring <url> <dest.gpg> [dearmor]
   [[ -f "$2" ]] && return 0
@@ -136,6 +138,12 @@ EOF
     sudo snap install spotify || fail "Spotify"
   fi
   snap list spotify >/dev/null 2>&1 && ok "Spotify"
+
+  # Telegram — the official snap tracks Telegram's releases; apt's lags.
+  if ! snap list telegram-desktop >/dev/null 2>&1; then
+    sudo snap install telegram-desktop || fail "Telegram"
+  fi
+  snap list telegram-desktop >/dev/null 2>&1 && ok "Telegram"
 
   # Tailscale.
   if ! have tailscale; then
@@ -313,10 +321,30 @@ install_shell_and_editors() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  6. GNOME
+#  6. Google Drive
+# ═══════════════════════════════════════════════════════════════════════════
+install_drive() {
+  hdr "6  Google Drive (rclone mount at ~/GoogleDrive)"
+  if ! have rclone; then fail "rclone missing"; return; fi
+  local unit="$HOME/.config/systemd/user/rclone-gdrive.service"
+  mkdir -p "$(dirname "$unit")"
+  if ! cmp -s "$D/systemd/rclone-gdrive.service" "$unit"; then
+    cp "$D/systemd/rclone-gdrive.service" "$unit" && systemctl --user daemon-reload && ok "service file installed"
+  fi
+  if rclone listremotes 2>/dev/null | grep -x "gdrive:" >/dev/null; then
+    systemctl --user enable --now rclone-gdrive.service >/dev/null 2>&1 \
+      && ok "mounted at ~/GoogleDrive (starts at every login)" \
+      || fail "Drive mount — journalctl --user -u rclone-gdrive -e"
+  else
+    warn "no rclone remote named gdrive yet — run: rclone config  (then: ./install.sh drive)"
+  fi
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  7. GNOME
 # ═══════════════════════════════════════════════════════════════════════════
 install_gnome() {
-  hdr "6  GNOME keybindings and settings"
+  hdr "7  GNOME keybindings and settings"
   bash "$D/gnome/settings.sh"
 }
 
@@ -328,10 +356,13 @@ check() {
   export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.config/emacs/bin:$PATH"
   local c
   for c in zsh tmux git gh rg fd g++ gdb clangd cmake emacs nvim code brave-browser \
-           ghostty starship node npm pyright claude ruff direnv wl-copy tailscale doom; do
+           ghostty starship node npm pyright claude ruff direnv wl-copy tailscale doom \
+           rclone lualatex latexmk dvisvgm; do
     have "$c" && ok "$c" || fail "$c missing"
   done
   snap list spotify >/dev/null 2>&1 && ok "spotify" || fail "spotify missing"
+  snap list telegram-desktop >/dev/null 2>&1 && ok "telegram" || fail "telegram missing"
+  systemctl --user is-active rclone-gdrive >/dev/null 2>&1 && ok "Google Drive mounted" || fail "Google Drive not mounted"
   fc-list | grep "JetBrainsMono Nerd Font" >/dev/null && ok "JetBrainsMono Nerd Font" || fail "Nerd Font missing"
   [[ -L "$HOME/.config/doom" ]] && ok "~/.config/doom linked" || fail "~/.config/doom not linked"
   [[ -f "$HOME/.ssh/id_ed25519.pub" ]] && ok "SSH key" || fail "no SSH key"
@@ -346,13 +377,15 @@ case "$MODE" in
     install_user_tools
     install_links
     install_shell_and_editors
+    install_drive
     install_gnome
     check
     ;;
   links) install_links ;;
   gnome) install_gnome ;;
+  drive) install_drive ;;
   check) check ;;
-  *) echo "usage: $0 [all|links|gnome|check]"; exit 1 ;;
+  *) echo "usage: $0 [all|links|gnome|drive|check]"; exit 1 ;;
 esac
 
 hdr "Done"
@@ -368,7 +401,8 @@ if [[ "$MODE" == all ]]; then
     1. Log out and back in   (zsh, PATH for GNOME apps, keybindings)
     2. gh auth status || gh auth login, then: gh ssh-key add ~/.ssh/id_ed25519.pub
     3. sudo tailscale up
-    4. In Emacs:             M-x pdf-tools-install
-    5. In Brave:             Settings → Sync, to pull bookmarks and extensions
+    4. rclone config         (new remote "gdrive", type drive), then ./install.sh drive
+    5. In Emacs:             M-x pdf-tools-install
+    6. Brave Sync, and log in to Spotify and Telegram
 EOF
 fi

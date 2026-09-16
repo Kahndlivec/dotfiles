@@ -79,9 +79,9 @@ sudo apt install build-essential gdb clangd clang-format cmake
 npm i -g pyright bash-language-server @anthropic-ai/claude-code
 pipx install debugpy        # for dape on Python
 
-# LaTeX — deferred until you actually miss org previews. When you do:
-#   sudo apt install texlive-latex-extra texlive-science dvisvgm latexmk
-# (texlive-full is ~6 GB; the line above covers math notes.)
+# LaTeX for org previews and LuaLaTeX documents (~1.5 GB; texlive-full is ~6 GB)
+sudo apt install texlive-latex-extra texlive-luatex texlive-science \
+  texlive-pictures texlive-fonts-recommended texlive-lang-czechslovak dvisvgm latexmk
 
 sudo apt install pandoc
 

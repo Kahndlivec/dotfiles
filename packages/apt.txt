@@ -30,6 +30,7 @@ lazygit
 wakeonlan
 diceware
 openssh-client
+wev                     # shows what a key sends — for checking the HHKB remap
 
 # ── C / C++ ─────────────────────────────────────────────────────────
 build-essential         # gcc, g++, make — CP and real projects
@@ -54,6 +55,20 @@ libvterm-dev
 pandoc
 ghostscript
 poppler-utils
+
+# ── LaTeX: org math previews + LuaLaTeX documents (~1.5 GB, not texlive-full)
+texlive-latex-extra     # pulls base + recommended (amsmath, mathtools, …)
+texlive-luatex          # config.el sets TeX-engine to luatex
+texlive-science         # physics, siunitx, algorithm packages
+texlive-pictures        # tikz, pgf, tikz-cd
+texlive-fonts-recommended
+texlive-lang-czechslovak
+dvisvgm                 # crisp SVG previews in org on a 4K screen
+latexmk
+
+# ── Google Drive ────────────────────────────────────────────────────
+rclone                  # mounts Drive at ~/GoogleDrive (systemd/rclone-gdrive.service)
+fuse3
 
 # ── languages & linters ─────────────────────────────────────────────
 python3

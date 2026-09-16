@@ -15,6 +15,7 @@
 !packages/*.txt
 !gnome/*.sh
 !env/*.conf
+!systemd/*.service
 
 # Configs
 !zsh/.zshrc
