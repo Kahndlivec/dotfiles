@@ -292,7 +292,7 @@ full screen.
 ## 6. SSH
 
 `ssh/config` has the ControlMaster setup TRAMP needs, and `install.sh` copies it.
-`/ssh:khandlab-tramp:~/` then works as a path anywhere Emacs takes a filename —
+`/ssh:homelab:~/` then works as a path anywhere Emacs takes a filename —
 `SPC .`, `SPC f f`, dired — e.g. from the ThinkPad into the desktop.
 
 **For heavy remote work, don't use TRAMP.** Run Emacs on the other machine and

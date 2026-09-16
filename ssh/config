@@ -6,16 +6,17 @@ Host khandlab
     HostName khandlab.tailf80156.ts.net
     User khand
 
-# Same box for TRAMP: `/ssh:khandlab-tramp:~/`. TRAMP parses the remote
-# prompt, and a forced TTY confuses it.
-Host khandlab-tramp
+# Same box for TRAMP and `eh`: `/ssh:homelab:~/`. TRAMP parses the remote
+# shell prompt, and a TTY confuses it.
+Host homelab
     HostName khandlab.tailf80156.ts.net
     User khand
     RequestTTY no
 
-Host khandlab-lan
+Host homelab-lan
     HostName 192.168.99.250
     User khand
+    RequestTTY no
 
 # Defaults for every host — kept last, since ssh takes the FIRST value it
 # sees for each option.

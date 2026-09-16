@@ -13,8 +13,8 @@ setopt SHARE_HISTORY
 
 # ─── Completion ────────────────────────────────────────────────────
 autoload -Uz compinit && compinit -C
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'   # case-insensitive
-zstyle ':completion:*' menu select
+# -C skips the completion-dir security check. Costs ~150ms per shell to
+# do it properly; on a single-user machine it buys nothing.
 
 # ─── Keys ──────────────────────────────────────────────────────────
 # Emacs keys in the shell, deliberately: the same C-a/C-e/C-r work inside
@@ -47,6 +47,10 @@ e() {
 et() {
   emacsclient -t "$@" 2>/dev/null || emacs -nw "$@"
 }
+
+# Emacs on the desktop, from the ThinkPad: a terminal frame attached to the
+# Emacs session already running there.
+eh() { ssh -t homelab "emacsclient -t -a ''"; }
 
 alias doomsync='doom sync && doom doctor'
 alias v=nvim
