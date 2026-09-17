@@ -255,9 +255,11 @@ install_user_tools() {
   if have fdfind && ! have fd; then ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"; fi
   have fd && ok "fd"
 
-  # Neovim — the config needs 0.11+, so take the official release build.
-  local nv=""
-  have nvim && nv="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+  # Neovim — the config needs 0.11+, so always use our own release build in
+  # ~/.local/bin. An apt `neovim` elsewhere on PATH doesn't count: prune
+  # removes it, and the Neovim app points at ~/.local/bin/nvim.
+  local nv="" mynvim="$HOME/.local/bin/nvim"
+  [[ -x "$mynvim" ]] && nv="$("$mynvim" --version 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
   if [[ -z "$nv" ]] || ! version_ge "$nv" 0.11.0; then
     local asset=nvim-linux-x86_64
     [[ "$ARCH" == arm64 ]] && asset=nvim-linux-arm64
@@ -269,7 +271,7 @@ install_user_tools() {
       fail "Neovim download"
     fi
   fi
-  have nvim && ok "Neovim $(nvim --version | head -1 | awk '{print $2}')"
+  [[ -x "$mynvim" ]] && ok "Neovim $("$mynvim" --version | head -1 | awk '{print $2}') in ~/.local/bin" || fail "Neovim not in ~/.local/bin"
 
   # "Neovim" app: the Neovim logo in the app grid and on Super+V. Opens nvim
   # straight away in its own Ghostty window — no tmux, no shell. The --class
@@ -543,11 +545,19 @@ check() {
   snap list spotify >/dev/null 2>&1 && ok "spotify" || fail "spotify missing"
   snap list telegram-desktop >/dev/null 2>&1 && ok "telegram" || fail "telegram missing"
   fc-list | grep "JetBrainsMono Nerd Font" >/dev/null && ok "JetBrainsMono Nerd Font" || fail "Nerd Font missing"
-  if have nvim; then
-    nv="$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
-    version_ge "$nv" 0.11.0 && ok "nvim $nv (need ≥ 0.11)" || fail "nvim $nv too old"
+  if [[ -x "$HOME/.local/bin/nvim" ]]; then
+    nv="$("$HOME/.local/bin/nvim" --version | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+    version_ge "$nv" 0.11.0 && ok "nvim $nv in ~/.local/bin (need ≥ 0.11)" || fail "nvim $nv too old"
+  else
+    fail "Neovim missing from ~/.local/bin (fix: ./install.sh)"
   fi
-  [[ -f "$HOME/.local/share/applications/io.neovim.nvim.desktop" ]] && ok "Neovim app in app grid" || fail "no Neovim app entry"
+  [[ "$(command -v nvim)" == "$HOME/.local/bin/nvim" ]] || warn "\`nvim\` resolves to $(command -v nvim || echo nothing), not ~/.local/bin/nvim"
+  local nexec; nexec="$(grep -m1 '^Exec=' "$HOME/.local/share/applications/io.neovim.nvim.desktop" 2>/dev/null | sed -E 's/.* -e ([^ ]+).*/\1/')"
+  if [[ -n "$nexec" && -x "$nexec" && -f "$HOME/.local/share/icons/hicolor/128x128/apps/nvim.png" ]]; then
+    ok "Neovim app (launches, has icon)"
+  else
+    fail "Neovim app broken: launcher target ${nexec:-none}, icon $([[ -f "$HOME/.local/share/icons/hicolor/128x128/apps/nvim.png" ]] && echo ok || echo missing) (fix: ./install.sh)"
+  fi
   id -nG "$USER" | tr ' ' '\n' | grep -x docker >/dev/null && ok "in docker group" || warn "not in docker group yet (log out and in)"
   local leftover="" pk
   while read -r pk; do dpkg -s "$pk" >/dev/null 2>&1 && leftover+=" $pk"; done < <(list "$D/packages/remove-apt.txt")
@@ -643,6 +653,11 @@ prune() {
     if [[ -n "$kdbx" ]]; then
       fail "a KeePassXC database is inside flatpak data — move it somewhere in ~/Documents first: $kdbx"; return 1
     fi
+  fi
+  if printf '%s\n' "${pkgs[@]}" | grep -x neovim >/dev/null && [[ ! -x "$HOME/.local/bin/nvim" ]]; then
+    missing+=("Neovim in ~/.local/bin")
+  fi
+  if ((${#apps[@]})); then
     for a in "${apps[@]}"; do
       case "$a" in
         com.github.ahrm.sioyek)  have sioyek    || missing+=(sioyek) ;;
@@ -651,9 +666,9 @@ prune() {
         org.telegram.desktop)    snap list telegram-desktop >/dev/null 2>&1 || missing+=(telegram) ;;
       esac
     done
-    if ((${#missing[@]})); then
-      fail "replacements not installed yet: ${missing[*]} — run ./install.sh first"; return 1
-    fi
+  fi
+  if ((${#missing[@]})); then
+    fail "replacements not installed yet: ${missing[*]} — run ./install.sh first"; return 1
   fi
 
   [[ -t 0 ]] || { fail "prune needs a terminal to confirm"; return 1; }
