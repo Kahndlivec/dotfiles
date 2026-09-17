@@ -32,8 +32,8 @@ it's safe to re-run at any time. It installs:
 
 | | |
 |---|---|
-| apt (`packages/apt.txt`) | zsh, tmux, git, gh, gcc/g++, gdb, clangd, cmake, ripgrep, fd, direnv, pandoc, emacs-pgtk, full TeX Live, rclone, KeePassXC, build deps for pdf-tools and vterm |
-| vendor repos / snaps | VS Code, Brave, Ghostty, Spotify, Telegram, Tailscale |
+| apt (`packages/apt.txt`) | zsh, tmux, git, gh, gcc/g++, gdb, clangd, cmake, ripgrep, fd, direnv, pandoc, emacs-pgtk, full TeX Live, rclone, KeePassXC, Sioyek, Timeshift, Solaar, bat/eza/delta/zoxide, build deps for pdf-tools and vterm |
+| vendor repos / snaps | VS Code, Brave, Ghostty, Spotify, Telegram, Tailscale, Docker (+ NVIDIA container toolkit on NVIDIA machines) |
 | user-level | Neovim (release build, with its app icon), starship, JetBrainsMono Nerd Font, npm globals (`packages/npm.txt`), pipx tools (`packages/pipx.txt`), VS Code extensions |
 | editors | clones Doom and runs `doom install`, restores Neovim plugins from `lazy-lock.json` |
 | system | zsh as login shell, a fresh SSH key for this machine, Google Drive mount, GNOME keybindings and settings |
@@ -48,7 +48,13 @@ Emacs, and sign in to Brave Sync, Spotify and Telegram.
 ./install.sh drive    # only (re)enable the Google Drive mount
 ./install.sh check    # report what's installed, change nothing
 ./install.sh audit    # find leftovers from an older setup, change nothing
+./install.sh prune    # remove software this setup replaces (shows it, asks first)
 ```
+
+What gets removed is `packages/remove-apt.txt` plus every flatpak app — only
+after their replacements are installed, flatpak data is backed up to a tarball,
+and you type `yes`. Clutter launchers in `packages/hidden-launchers.txt` are
+hidden from the app grid (software stays installed).
 
 ## Keys (GNOME)
 

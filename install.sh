@@ -18,6 +18,7 @@
 #      ./install.sh drive        only (re)enable the Google Drive mount
 #      ./install.sh check        report what's installed, change nothing
 #      ./install.sh audit        find leftovers from older setups, change nothing
+#      ./install.sh prune        remove what this setup replaces (shows it, asks first)
 #
 #  Shared by more than one person: everything personal (git name/email, SSH
 #  hosts, aliases, Emacs identity) lives in people/<name>/. The first run asks
@@ -172,6 +173,72 @@ EOF
     sudo systemctl enable --now tailscaled >/dev/null 2>&1
     ok "Tailscale (then: sudo tailscale up)"
   fi
+}
+
+# Docker from Docker's own repo; on machines with an NVIDIA GPU, also the
+# NVIDIA container toolkit so containers can use CUDA.
+install_docker() {
+  hdr "2b Docker"
+  local code
+  code="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")"
+  if ! have docker; then
+    if ! grep -rsE "^[^#]*download\.docker\.com" /etc/apt/sources.list /etc/apt/sources.list.d >/dev/null; then
+      if ! curl -fsI "https://download.docker.com/linux/ubuntu/dists/$code/Release" >/dev/null; then
+        warn "Docker has no repo for Ubuntu '$code' yet — using noble's"; code=noble
+      fi
+      sudo install -m 0755 -d /etc/apt/keyrings
+      sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+      sudo chmod a+r /etc/apt/keyrings/docker.asc
+      sudo tee /etc/apt/sources.list.d/docker.sources >/dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $code
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+      sudo apt-get update -qq
+    fi
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli containerd.io \
+      docker-buildx-plugin docker-compose-plugin || fail "Docker install"
+  fi
+  have docker && ok "Docker"
+  if have docker && ! id -nG "$USER" | tr ' ' '\n' | grep -x docker >/dev/null; then
+    sudo usermod -aG docker "$USER" && ok "added you to the docker group (takes effect at next login)"
+  fi
+
+  if have nvidia-smi && have docker; then
+    if ! have nvidia-ctk; then
+      curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+        | sudo gpg --dearmor --yes -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+      curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+        | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+        | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list >/dev/null
+      sudo apt-get update -qq
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y nvidia-container-toolkit || fail "NVIDIA container toolkit"
+    fi
+    if have nvidia-ctk && ! grep -s nvidia /etc/docker/daemon.json >/dev/null; then
+      sudo nvidia-ctk runtime configure --runtime=docker >/dev/null && sudo systemctl restart docker
+    fi
+    have nvidia-ctk && ok "NVIDIA GPUs available to containers"
+  fi
+}
+
+# Hide clutter launchers from the app grid (packages/hidden-launchers.txt).
+hide_launchers() {
+  local apps="$HOME/.local/share/applications" id src dir n=0
+  mkdir -p "$apps"
+  while read -r id; do
+    src=""
+    for dir in /usr/share/applications /usr/local/share/applications /var/lib/snapd/desktop/applications; do
+      [[ -f "$dir/$id" ]] && { src="$dir/$id"; break; }
+    done
+    [[ -n "$src" ]] || continue
+    [[ -f "$apps/$id" ]] && grep -x 'NoDisplay=true' "$apps/$id" >/dev/null && continue
+    sed -e '/^NoDisplay=/d' -e 's/^\[Desktop Entry\]$/[Desktop Entry]\nNoDisplay=true/' "$src" > "$apps/$id" \
+      && n=$((n + 1))
+  done < <(list "$D/packages/hidden-launchers.txt")
+  update-desktop-database "$apps" >/dev/null 2>&1 || true
+  ok "app grid: hid $n more clutter launcher(s) — software stays installed"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -455,6 +522,7 @@ install_drive() {
 # ═══════════════════════════════════════════════════════════════════════════
 install_gnome() {
   hdr "7  GNOME keybindings and settings"
+  hide_launchers
   bash "$D/gnome/settings.sh"
 }
 
@@ -469,7 +537,7 @@ check() {
   echo "  ── programs"
   for c in zsh tmux git gh rg fd g++ gdb clangd cmake emacs nvim code brave-browser \
            ghostty starship node npm pyright claude ruff direnv wl-copy tailscale doom \
-           rclone lualatex latexmk dvisvgm; do
+           rclone lualatex latexmk dvisvgm sioyek timeshift solaar batcat eza delta zoxide docker; do
     have "$c" && ok "$c" || fail "$c missing"
   done
   snap list spotify >/dev/null 2>&1 && ok "spotify" || fail "spotify missing"
@@ -480,6 +548,11 @@ check() {
     version_ge "$nv" 0.11.0 && ok "nvim $nv (need ≥ 0.11)" || fail "nvim $nv too old"
   fi
   [[ -f "$HOME/.local/share/applications/io.neovim.nvim.desktop" ]] && ok "Neovim app in app grid" || fail "no Neovim app entry"
+  id -nG "$USER" | tr ' ' '\n' | grep -x docker >/dev/null && ok "in docker group" || warn "not in docker group yet (log out and in)"
+  local leftover="" pk
+  while read -r pk; do dpkg -s "$pk" >/dev/null 2>&1 && leftover+=" $pk"; done < <(list "$D/packages/remove-apt.txt")
+  have flatpak && [[ -n "$(flatpak list --app --columns=application 2>/dev/null)" ]] && leftover+=" (flatpak apps)"
+  [[ -z "$leftover" ]] && ok "nothing from remove-apt.txt installed" || warn "replaced software still installed:$leftover (./install.sh prune)"
 
   echo "  ── configs linked into the repo"
   local pair src dst
@@ -540,6 +613,77 @@ check() {
   gh auth status >/dev/null 2>&1 && ok "gh logged in" || warn "gh not logged in yet"
   [[ -d "$HOME/.config/emacs" ]] && ok "Doom installed" || fail "Doom not installed"
   [[ -z "$(git -C "$D" status --porcelain)" ]] && ok "dotfiles repo clean" || warn "uncommitted changes: git -C $D status"
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  prune — remove what this setup replaces. Shows everything, asks first.
+# ═══════════════════════════════════════════════════════════════════════════
+prune() {
+  hdr "Prune — software this setup replaces"
+  local pkgs=() apps=() p a sim ans missing=()
+  while read -r p; do dpkg -s "$p" >/dev/null 2>&1 && pkgs+=("$p"); done < <(list "$D/packages/remove-apt.txt")
+  have flatpak && mapfile -t apps < <(flatpak list --app --columns=application 2>/dev/null | sed '/^$/d')
+
+  if ((${#pkgs[@]} == 0 && ${#apps[@]} == 0)); then
+    ok "nothing to remove"; return 0
+  fi
+  echo "  apt packages:   ${pkgs[*]:-none}"
+  echo "  flatpak apps:   ${apps[*]:-none}"
+
+  if ((${#pkgs[@]})); then
+    sim="$(apt-get -s purge "${pkgs[@]}" 2>/dev/null | awk '/^(Purg|Remv) /{print $2}')"
+    echo "  apt would remove: $(tr '\n' ' ' <<<"$sim")"
+    if grep -xE 'ubuntu-desktop(-minimal)?|ubuntu-minimal|ubuntu-standard|gnome-shell|gdm3|snapd|nautilus' <<<"$sim" >/dev/null; then
+      fail "that would take part of the desktop with it — stopping, nothing removed"; return 1
+    fi
+  fi
+
+  if ((${#apps[@]})); then
+    local kdbx; kdbx="$(find "$HOME/.var/app" -name '*.kdbx' 2>/dev/null)"
+    if [[ -n "$kdbx" ]]; then
+      fail "a KeePassXC database is inside flatpak data — move it somewhere in ~/Documents first: $kdbx"; return 1
+    fi
+    for a in "${apps[@]}"; do
+      case "$a" in
+        com.github.ahrm.sioyek)  have sioyek    || missing+=(sioyek) ;;
+        org.keepassxc.KeePassXC) have keepassxc || missing+=(keepassxc) ;;
+        com.spotify.Client)      snap list spotify >/dev/null 2>&1 || missing+=(spotify) ;;
+        org.telegram.desktop)    snap list telegram-desktop >/dev/null 2>&1 || missing+=(telegram) ;;
+      esac
+    done
+    if ((${#missing[@]})); then
+      fail "replacements not installed yet: ${missing[*]} — run ./install.sh first"; return 1
+    fi
+  fi
+
+  [[ -t 0 ]] || { fail "prune needs a terminal to confirm"; return 1; }
+  read -rp "  Remove all of the above? Type yes: " ans
+  [[ "$ans" == yes ]] || { warn "nothing removed"; return 0; }
+  start_sudo
+
+  if ((${#apps[@]})); then
+    if [[ -d "$HOME/.var/app" ]]; then
+      local bk; bk="$HOME/flatpak-data-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+      tar -czf "$bk" -C "$HOME/.var" app && ok "flatpak app data backed up → ${bk/#$HOME/\~}"
+      local sdb; sdb="$(find "$HOME/.var/app/com.github.ahrm.sioyek" -name shared.db -printf '%h\n' 2>/dev/null | head -1)"
+      if [[ -n "$sdb" && ! -e "$HOME/.local/share/sioyek" ]]; then
+        mkdir -p "$HOME/.local/share" && cp -a "$sdb" "$HOME/.local/share/sioyek" && ok "Sioyek bookmarks and highlights carried over"
+      fi
+    fi
+    flatpak uninstall -y --delete-data "${apps[@]}" >/dev/null && ok "removed flatpak apps: ${apps[*]}" || fail "flatpak uninstall"
+    flatpak uninstall -y --unused >/dev/null 2>&1 || true
+  fi
+
+  if ((${#pkgs[@]})); then
+    sudo DEBIAN_FRONTEND=noninteractive apt-get purge -y "${pkgs[@]}" >/dev/null && ok "removed: ${pkgs[*]}" || fail "apt purge"
+    sudo apt-get autoremove -y >/dev/null && ok "cleaned up unused dependencies"
+    sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome.sources
+  fi
+  if ! have flatpak; then
+    sudo rm -rf /var/lib/flatpak
+    rmdir "$HOME/.var/app" "$HOME/.var" 2>/dev/null || true
+  fi
+  install_gnome
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -669,6 +813,7 @@ case "$MODE" in
     start_sudo
     install_apt
     install_apps
+    install_docker
     install_user_tools
     install_links
     install_shell_and_editors
@@ -681,7 +826,8 @@ case "$MODE" in
   drive) install_drive ;;
   check) check ;;
   audit) audit ;;
-  *) echo "usage: $0 [all|links|gnome|drive|check|audit]"; exit 1 ;;
+  prune) prune ;;
+  *) echo "usage: $0 [all|links|gnome|drive|check|audit|prune]"; exit 1 ;;
 esac
 
 hdr "Done"
@@ -691,6 +837,7 @@ if ((${#FAILED[@]})); then
 fi
 [[ -d "$BACKUP" ]] && echo "  Replaced files were backed up to: $BACKUP"
 [[ "$MODE" == audit ]] && exit 0
+[[ "$MODE" == prune ]] && exit 0
 if [[ "$MODE" == all ]]; then
   cat <<'EOF'
 

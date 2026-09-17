@@ -1,0 +1,17 @@
+# App-grid launchers to hide. The software stays installed — this only
+# removes the icon (a copy with NoDisplay=true in ~/.local/share/applications).
+# Undo one: rm ~/.local/share/applications/<name>.desktop
+debian-uxterm.desktop               # XTerm — pulled in by TeX Live
+debian-xterm.desktop
+display-im7.q16.desktop             # ImageMagick viewer
+display-im6.q16.desktop
+emacsclient.desktop                 # Emacs (Client) — Super+E opens the real one
+emacs-term.desktop                  # Emacs (Terminal)
+info.desktop                        # TeXInfo
+texdoctk.desktop                    # TeXdoctk
+prerex.desktop                      # TeX Live extras
+vprerex.desktop
+vim.desktop                         # Neovim replaces it
+btop.desktop                        # run `btop` in a terminal instead
+im-config.desktop                   # Input Method — not used
+org.freedesktop.IBus.Setup.desktop  # IBus Preferences — not used

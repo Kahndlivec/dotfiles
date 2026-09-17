@@ -81,6 +81,21 @@ emacs-pgtk              # native Wayland build; crisp on scaled 4K
 
 # ── apps ────────────────────────────────────────────────────────────
 keepassxc
+sioyek                  # PDF reader for maths: jump to a cited equation and back
+timeshift               # system snapshots — roll back a bad update
+solaar                  # Logitech mouse/keyboard settings
+dconf-editor            # inspect any GNOME setting
+gnome-tweaks
+
+# ── terminal tools ──────────────────────────────────────────────────
+bat                     # cat with highlighting (command: bat, via alias)
+eza                     # ls with git status and icons
+git-delta               # readable git diffs (git's pager)
+zoxide                  # smarter cd: z, zi
+tree
+ncdu                    # what's using the disk
+rsync
+valgrind                # memory errors in C/C++
 
 # ── fonts ───────────────────────────────────────────────────────────
 fonts-inter             # doom-variable-pitch-font

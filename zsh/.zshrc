@@ -53,8 +53,14 @@ alias v=nvim
 
 # ─── Linux conveniences ────────────────────────────────────────────
 alias open='xdg-open'
-alias ls='ls --color=auto --group-directories-first'
-alias ll='ls -lah'
+if command -v eza >/dev/null; then
+  alias ls='eza --group-directories-first'
+  alias ll='eza -la --git --group-directories-first'
+else
+  alias ls='ls --color=auto --group-directories-first'
+  alias ll='ls -lah'
+fi
+command -v batcat >/dev/null && alias bat='batcat'   # Ubuntu names it batcat
 alias grep='grep --color=auto'
 alias update='sudo apt update && sudo apt full-upgrade -y && sudo snap refresh'
 
@@ -104,6 +110,7 @@ alias ta='tmux attach || tmux new'
 # ─── Plugins (syntax-highlighting must be sourced last) ────────────
 command -v starship >/dev/null && eval "$(starship init zsh)"
 command -v direnv   >/dev/null && eval "$(direnv hook zsh)"
+command -v zoxide   >/dev/null && eval "$(zoxide init zsh)"
 [[ -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] \
   && source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 [[ -r /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] \

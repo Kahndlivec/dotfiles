@@ -5,6 +5,13 @@
 	required = true
 [init]
 	defaultBranch = main
+# delta: side-by-side-readable diffs in `git diff/log/show`. n / N jump between files.
+[core]
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
 [pull]
 	rebase = true
 # Name and email come from people/<you>/gitconfig, linked by install.sh.

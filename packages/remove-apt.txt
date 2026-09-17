@@ -1,0 +1,13 @@
+# Packages this setup replaces. Only `./install.sh prune` removes them, and
+# only after showing exactly what apt would do and you typing yes.
+google-chrome-stable            # Brave (Chromium) + Firefox cover both engines
+zathura                         # Sioyek replaces it
+zathura-pdf-poppler
+neovim                          # apt's old Neovim; ours is in ~/.local/bin
+gnome-shell-extension-manager   # no extensions in use
+gnome-software-plugin-flatpak   # flatpak apps move to apt/snap
+gnome-software                  # App Center is the one app store
+flatpak
+usb-creator-gtk                 # Disks → Restore Disk Image makes USB installers
+xclip                           # X11 clipboard; Wayland uses wl-clipboard
+evtest                          # wev does this on Wayland
