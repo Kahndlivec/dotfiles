@@ -1,6 +1,7 @@
-# Runs the push a few minutes after login and every 15 minutes after that.
+# Optional. NOT enabled by default — saving notes is a manual step (SPC n p).
+# Turn it on with:  systemctl --user enable --now notes-sync.timer
 [Unit]
-Description=Push org notes to Google Drive every 15 minutes
+Description=Save notes every 15 minutes (optional)
 
 [Timer]
 OnStartupSec=3min

@@ -50,9 +50,9 @@ et() {
 
 alias doomsync='doom sync && doom doctor'
 
-# Notes → Drive now (the timer does it every 15 min anyway; SPC n p in Emacs).
-alias notes-push='systemctl --user start notes-sync.service && echo "pushing notes to Drive…"'
-alias notes-log='journalctl --user -u notes-sync -n 20 --no-pager'
+# Save notes: commit + push to GitHub, then copy to Drive for the iPad.
+# Same thing as SPC n p in Emacs. Nothing runs on a schedule.
+alias notes-push="$HOME/dotfiles/bin/notes-sync"
 alias v=nvim
 
 # ─── Linux conveniences ────────────────────────────────────────────

@@ -569,7 +569,7 @@ screen instead of halfway between two."
        :desc "Paste image"             "v" #'org-download-clipboard
        :desc "Insert newest iPad scan" "i" #'+scans-insert-latest
        :desc "Insert a scan…"          "I" #'+scans-insert
-       :desc "Push notes to Drive"     "p" #'+scans-push-notes
+       :desc "Save notes (git + Drive)" "p" #'+scans-save-notes
        :desc "Agenda"                  "a" #'org-agenda
        :desc "Capture"                 "c" #'org-capture))
 

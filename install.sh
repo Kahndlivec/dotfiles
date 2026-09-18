@@ -519,10 +519,10 @@ install_drive() {
     return
   fi
 
-  # The iPad loop: exports land in Drive/Notes-inbox, notes are pushed to
-  # Drive/Notes so Orgro on the iPad can read them.
-  rclone mkdir gdrive:Notes-inbox >/dev/null 2>&1
-  rclone mkdir gdrive:Notes >/dev/null 2>&1
+  # The iPad loop: page/lasso exports land in Drive/Org-inbox; `SPC n p` copies
+  # the notes to Drive/Org. Drive/notes (GoodNotes' own backup) is left alone.
+  rclone mkdir gdrive:Org-inbox >/dev/null 2>&1
+  rclone mkdir gdrive:Org >/dev/null 2>&1
   mkdir -p "$HOME/Documents/notes/assets"
   local u
   for u in notes-sync.service notes-sync.timer; do
@@ -530,9 +530,41 @@ install_drive() {
       || cp "$D/systemd/$u" "$HOME/.config/systemd/user/$u"
   done
   systemctl --user daemon-reload
-  systemctl --user enable --now notes-sync.timer >/dev/null 2>&1 \
-    && ok "notes → Drive every 15 min (now: notes-push, or SPC n p)" \
-    || fail "notes-sync timer"
+  ok "Drive/Org-inbox (imports) and Drive/Org (your notes) ready"
+  ok "saving notes is manual: SPC n p in Emacs, or notes-push"
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  notes — put ~/Documents/notes under git, with a private GitHub repo
+# ═══════════════════════════════════════════════════════════════════════════
+install_notes() {
+  hdr "Notes repo"
+  local N="$HOME/Documents/notes"
+  mkdir -p "$N/assets"
+  if [[ ! -d "$N/.git" ]]; then
+    git -C "$N" init -q -b main
+    printf '%s\n' '# Emacs scratch files' '.#*' '*~' '\\#*\\#' '.org-id-locations' > "$N/.gitignore"
+    git -C "$N" add -A && git -C "$N" commit -qm "notes" && ok "git repo created in ~/Documents/notes"
+  else
+    sk "already a git repo"
+  fi
+  if git -C "$N" remote | grep -x origin >/dev/null; then
+    sk "GitHub remote already set: $(git -C "$N" remote get-url origin)"
+  elif have gh && gh auth status >/dev/null 2>&1; then
+    if [[ -t 0 ]]; then
+      local ans
+      read -rp "  Create a PRIVATE GitHub repo for your notes and push? [y/N] " ans
+      if [[ "$ans" == [Yy]* ]]; then
+        gh repo create notes --private --source "$N" --remote origin --push \
+          && ok "notes pushed to GitHub (private)" || fail "gh repo create"
+      fi
+    else
+      warn "run ./install.sh notes in a terminal to create the GitHub repo"
+    fi
+  else
+    warn "gh not logged in — run gh auth login, then ./install.sh notes"
+  fi
+  ok "save a checkpoint any time with: notes-push  (or SPC n p)"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -635,8 +667,14 @@ check() {
   fi
   rclone listremotes 2>/dev/null | grep -x "gdrive:" >/dev/null && ok "rclone remote gdrive" || warn "no rclone remote gdrive yet"
   systemctl --user is-active rclone-gdrive >/dev/null 2>&1 && ok "Google Drive mounted" || warn "Google Drive not mounted yet"
-  systemctl --user is-active notes-sync.timer >/dev/null 2>&1 && ok "notes → Drive timer running" || warn "notes-sync timer not running (./install.sh drive)"
-  [[ -d "$HOME/GoogleDrive/Notes-inbox" ]] && ok "iPad inbox: ~/GoogleDrive/Notes-inbox" || warn "no ~/GoogleDrive/Notes-inbox yet"
+  [[ -d "$HOME/GoogleDrive/Org-inbox" ]] && ok "iPad inbox: ~/GoogleDrive/Org-inbox" || warn "no ~/GoogleDrive/Org-inbox yet"
+  if [[ -d "$HOME/Documents/notes/.git" ]]; then
+    git -C "$HOME/Documents/notes" remote | grep -x origin >/dev/null \
+      && ok "notes in git, pushed to $(git -C "$HOME/Documents/notes" remote get-url origin)" \
+      || warn "notes in git but no GitHub remote (./install.sh notes)"
+  else
+    warn "~/Documents/notes is not in git — nothing backs it up (./install.sh notes)"
+  fi
   [[ -f "$HOME/.ssh/id_ed25519.pub" ]] && ok "SSH key" || fail "no SSH key"
   gh auth status >/dev/null 2>&1 && ok "gh logged in" || warn "gh not logged in yet"
   [[ -d "$HOME/.config/emacs" ]] && ok "Doom installed" || fail "Doom not installed"
@@ -857,10 +895,11 @@ case "$MODE" in
   links) install_links ;;
   gnome) install_gnome ;;
   drive) install_drive ;;
+  notes) install_notes ;;
   check) check ;;
   audit) audit ;;
   prune) prune ;;
-  *) echo "usage: $0 [all|links|gnome|drive|check|audit|prune]"; exit 1 ;;
+  *) echo "usage: $0 [all|links|gnome|drive|notes|check|audit|prune]"; exit 1 ;;
 esac
 
 hdr "Done"

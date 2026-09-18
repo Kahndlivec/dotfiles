@@ -2,10 +2,14 @@
 ;;
 ;; The loop this supports:
 ;;
-;;   iPad (GoodNotes / Freeform)  →  export to Google Drive  →  ~/GoogleDrive/
-;;   Notes-inbox  →  `SPC n i' drops the newest export into the org file you're
-;;   writing, copied into assets/ next to your notes  →  `SPC n p' pushes the
-;;   notes folder back to Drive, so the iPad can read them (Orgro).
+;;   iPad (GoodNotes page or lasso)  →  export to Drive/Org-inbox  →  `SPC n i'
+;;   drops the newest export into the org file you're writing, copied into
+;;   assets/ next to your notes  →  `SPC n p' saves everything: commits and
+;;   pushes the notes to GitHub, then copies them to Drive/Org so the iPad can
+;;   read them (Orgro). Nothing syncs on a schedule; you decide when.
+;;
+;; Drive/notes stays untouched — that's GoodNotes' own backup of whole
+;; notebooks. Point `+scans-inbox' at it if you ever want to import from there.
 ;;
 ;; Why copy instead of linking into ~/GoogleDrive: the Drive folder is a network
 ;; mount. A link into it breaks whenever the mount isn't up, and Orgro on the
@@ -16,7 +20,7 @@
 ;;   SPC n v   paste an image from the clipboard (org-download)
 ;;   SPC n p   push notes to Drive now
 
-(defvar +scans-inbox (expand-file-name "~/GoogleDrive/Notes-inbox/")
+(defvar +scans-inbox (expand-file-name "~/GoogleDrive/Org-inbox/")
   "Folder the iPad exports into. Override in +local.el if you rename it.")
 
 (defvar +scans-extensions '("png" "jpg" "jpeg" "heic" "pdf")
@@ -114,15 +118,25 @@ A PDF becomes one PNG per page when pdftoppm is available."
     (+scans--insert-links (+scans--import src))))
 
 ;;;###autoload
-(defun +scans-push-notes ()
-  "Copy the notes folder to Drive now, so the iPad sees the current version.
-Runs the notes-sync service; it also runs by itself every 15 minutes."
+(defun +scans-save-notes ()
+  "Save the notes: commit and push to GitHub, then copy them to Drive.
+Nothing happens on a schedule — this is the checkpoint."
   (interactive)
-  (if (executable-find "systemctl")
-      (progn
-        (start-process "notes-sync" "*notes-sync*" "systemctl" "--user" "start" "notes-sync.service")
-        (message "Pushing notes to Drive…"))
-    (user-error "systemctl not found")))
+  (let ((script (expand-file-name "~/dotfiles/bin/notes-sync")))
+    (unless (file-executable-p script) (user-error "Not found: %s" script))
+    (when (buffer-file-name) (save-buffer))
+    (save-some-buffers t (lambda () (and buffer-file-name
+                                         (string-prefix-p (expand-file-name (or (bound-and-true-p org-directory) "~/Documents/notes/"))
+                                                          buffer-file-name))))
+    (let ((buf (get-buffer-create "*notes-sync*")))
+      (with-current-buffer buf (erase-buffer))
+      (make-process
+       :name "notes-sync" :buffer buf :command (list script)
+       :sentinel (lambda (_p event)
+                   (if (string-match-p "finished" event)
+                       (message "Notes saved: %s"
+                                (string-join (split-string (string-trim (with-current-buffer buf (buffer-string))) "\n") " | "))
+                     (message "notes-sync had trouble — see *notes-sync*")))))))
 
 (provide '+scans)
 ;;; +scans.el ends here
