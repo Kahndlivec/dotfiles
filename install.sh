@@ -539,6 +539,7 @@ install_notes() {
   if [[ ! -d "$N/.git" ]]; then
     git -C "$N" init -q -b main
     printf '%s\n' '# Emacs scratch files' '.#*' '*~' '\#*\#' '.org-id-locations' > "$N/.gitignore"
+    [[ -f "$N/README.md" ]] || cp "$D/templates/notes-README.md" "$N/README.md"
     git -C "$N" add -A && git -C "$N" commit -qm "notes" && ok "git repo created in ~/Documents/notes"
   else
     sk "already a git repo"
