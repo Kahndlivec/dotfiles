@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Save the notes: commit and push to GitHub, then copy them to Drive so the
+# iPad can read them. Run it whenever you want a checkpoint:
+#
+#   notes-push          (alias)        SPC n p   (Emacs)
+#   systemctl --user start notes-sync  (same thing, from a service)
+#
+# Drive gets a plain copy (one way — Emacs is the only writer). GitHub gets the
+# history, which is what actually protects the notes.
+set -uo pipefail
+NOTES="${NOTES_DIR:-$HOME/Documents/notes}"
+
+[[ -d "$NOTES" ]] || { echo "notes-sync: $NOTES does not exist"; exit 1; }
+
+if [[ -d "$NOTES/.git" ]]; then
+  git -C "$NOTES" add -A
+  if git -C "$NOTES" diff --cached --quiet; then
+    echo "notes-sync: nothing new to commit"
+  else
+    git -C "$NOTES" commit -qm "notes $(date '+%Y-%m-%d %H:%M')" && echo "notes-sync: committed"
+  fi
+  if git -C "$NOTES" remote | grep -qx origin; then
+    git -C "$NOTES" push -q && echo "notes-sync: pushed to GitHub" \
+      || echo "notes-sync: git push failed (offline? run: git -C $NOTES push)"
+  fi
+else
+  echo "notes-sync: $NOTES isn't a git repo yet — run: ~/dotfiles/install.sh notes"
+fi
+
+if command -v rclone >/dev/null && rclone listremotes 2>/dev/null | grep -qx "gdrive:"; then
+  rclone sync "$NOTES" gdrive:Org \
+    --exclude '.git/**' --exclude '.#*' --exclude '*~' --exclude '*.tmp' \
+    --create-empty-src-dirs \
+    && echo "notes-sync: copied to Drive/Org" || echo "notes-sync: rclone failed"
+else
+  echo "notes-sync: no gdrive remote — run: rclone config"
+fi

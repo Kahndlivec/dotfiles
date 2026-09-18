@@ -46,6 +46,7 @@ Emacs, and sign in to Brave Sync, Spotify and Telegram.
 ./install.sh links    # only re-link configs
 ./install.sh gnome    # only re-apply GNOME keybindings/settings
 ./install.sh drive    # only (re)enable the Google Drive mount
+./install.sh notes    # put ~/Documents/notes in git + a private GitHub repo
 ./install.sh check    # report what's installed, change nothing
 ./install.sh audit    # find leftovers from an older setup, change nothing
 ./install.sh prune    # remove software this setup replaces (shows it, asks first)
@@ -138,20 +139,25 @@ mount is slow and makes conflict copies.
 ## iPad ↔ notes
 
 ```
-GoodNotes / Freeform  →  Drive/Notes-inbox  →  SPC n i  →  note + assets/
-                                                              ↓ every 15 min
-                                    iPad (Orgro)  ←  Drive/Notes
+GoodNotes page or lasso  →  Drive/Org-inbox  →  SPC n i  →  note + assets/
+                                                               ↓ SPC n p
+                            iPad (Orgro)  ←  Drive/Org  ←  GitHub (history)
 ```
 
-- **On the iPad:** export the page as PNG (or the board as PDF) to
-  **Drive → Notes-inbox**.
-- **In Emacs:** `SPC n i` drops the newest export into the note you're writing,
-  copied into `assets/` beside your notes; `SPC n I` picks an older one; `SPC n v`
-  pastes an image from the clipboard. A PDF becomes one image per page, and
-  imported files move to `Notes-inbox/imported/`.
-- **Back to the iPad:** `notes-sync.timer` pushes `~/Documents/notes` to
-  **Drive/Notes** every 15 minutes — `SPC n p` or `notes-push` does it now.
-  One way only: Drive is a copy, Emacs is the only writer.
+- **Three folders on Drive, and they don't collide:** `notes/` stays GoodNotes'
+  own backup of whole notebooks and is never touched; `Org-inbox/` is where you
+  send a page or a lasso selection to import; `Org/` is the copy of your notes
+  you read on the iPad.
+- **Import:** `SPC n i` drops the newest export into the note at the cursor,
+  copied into `assets/`; `SPC n I` picks an older one; `SPC n v` pastes from the
+  clipboard. A PDF becomes one image per page. Imported files move to
+  `Org-inbox/imported/`.
+- **Save:** `SPC n p` (or `notes-push`) commits and pushes the notes to GitHub,
+  then copies them to Drive/Org. **Nothing runs on a schedule** — that key is the
+  checkpoint. If you ever want it automatic:
+  `systemctl --user enable --now notes-sync.timer`.
+- **Backup:** `./install.sh notes` puts `~/Documents/notes` in git with a private
+  GitHub repo. GitHub keeps the history; Drive is only the iPad's copy.
 - **Settings:** `+scans-inbox` and friends in `doom/+scans.el`, per machine in
   `~/.config/doom/+local.el`.
 

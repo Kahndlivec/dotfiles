@@ -214,9 +214,10 @@ Orgro is the one that renders your math properly, so use Orgro for notes and onl
 add Beorg if capture-on-the-go turns out to be something you actually do.
 
 For the handwriting loop: work the proof out in GoodNotes → export the region as PNG
-→ it syncs to Drive → drag it into the org buffer, or copy it and `SPC n v` pastes
-it (via `wl-paste`) as a linked image in `assets/`. For anything on screen: PrtSc,
-select the area — GNOME puts it on the clipboard — then `SPC n v`.
+→ it syncs to Drive/Org-inbox → `SPC n i` in the note you're writing drops the
+newest export in, copied into `assets/`. `SPC n I` picks an older one. For
+anything on screen: PrtSc, select the area — GNOME puts it on the clipboard —
+then `SPC n v`. `SPC n p` saves: git push, then a copy to Drive/Org for Orgro.
 
 ## 5. Competitive programming
 

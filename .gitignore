@@ -14,6 +14,7 @@
 !install.sh
 !packages/*.txt
 !gnome/*.sh
+!bin/*
 !gnome/shortcuts.conf
 !people/**
 !env/*.conf
