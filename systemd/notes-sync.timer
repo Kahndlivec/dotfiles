@@ -1,0 +1,11 @@
+# Runs the push a few minutes after login and every 15 minutes after that.
+[Unit]
+Description=Push org notes to Google Drive every 15 minutes
+
+[Timer]
+OnStartupSec=3min
+OnUnitActiveSec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

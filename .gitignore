@@ -18,6 +18,7 @@
 !people/**
 !env/*.conf
 !systemd/*.service
+!systemd/*.timer
 
 # Configs
 !zsh/.zshrc
