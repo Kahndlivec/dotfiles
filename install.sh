@@ -519,19 +519,14 @@ install_drive() {
     return
   fi
 
-  # The iPad loop: page/lasso exports land in Drive/Org-inbox; `SPC n p` copies
-  # the notes to Drive/Org. Drive/notes (GoodNotes' own backup) is left alone.
+  # Drive has exactly one job here: carrying GoodNotes exports in. The notes
+  # themselves live in git. Drive/notes (GoodNotes' own backup) is left alone.
   rclone mkdir gdrive:Org-inbox >/dev/null 2>&1
-  rclone mkdir gdrive:Org >/dev/null 2>&1
   mkdir -p "$HOME/Documents/notes/assets"
-  local u
-  for u in notes-sync.service notes-sync.timer; do
-    cmp -s "$D/systemd/$u" "$HOME/.config/systemd/user/$u" \
-      || cp "$D/systemd/$u" "$HOME/.config/systemd/user/$u"
-  done
+  rm -f "$HOME/.config/systemd/user/notes-sync.service" "$HOME/.config/systemd/user/notes-sync.timer"
+  systemctl --user disable --now notes-sync.timer >/dev/null 2>&1
   systemctl --user daemon-reload
-  ok "Drive/Org-inbox (imports) and Drive/Org (your notes) ready"
-  ok "saving notes is manual: SPC n p in Emacs, or notes-push"
+  ok "iPad exports go to Drive/Org-inbox → SPC n i"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════

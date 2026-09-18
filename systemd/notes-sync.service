@@ -1,9 +1,0 @@
-# Saves the notes: commit + push to GitHub, then copy to Drive for the iPad.
-# Started by hand (notes-push, or SPC n p in Emacs) — there is no schedule by
-# default. If you ever want one: systemctl --user enable --now notes-sync.timer
-[Unit]
-Description=Save notes (git push + copy to Drive)
-
-[Service]
-Type=oneshot
-ExecStart=%h/dotfiles/bin/notes-sync

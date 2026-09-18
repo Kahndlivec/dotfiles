@@ -141,23 +141,23 @@ mount is slow and makes conflict copies.
 ```
 GoodNotes page or lasso  →  Drive/Org-inbox  →  SPC n i  →  note + assets/
                                                                ↓ SPC n p
-                            iPad (Orgro)  ←  Drive/Org  ←  GitHub (history)
+                              iPad: Working Copy → Orgro  ←  GitHub
 ```
 
-- **Three folders on Drive, and they don't collide:** `notes/` stays GoodNotes'
-  own backup of whole notebooks and is never touched; `Org-inbox/` is where you
-  send a page or a lasso selection to import; `Org/` is the copy of your notes
-  you read on the iPad.
+- **Drive carries exports in, git carries notes out.** `Org-inbox/` is where you
+  send a page or a lasso selection; GoodNotes' own `notes/` backup of whole
+  notebooks is never touched. The notes themselves sync through git only — one
+  source of truth, with history.
 - **Import:** `SPC n i` drops the newest export into the note at the cursor,
   copied into `assets/`; `SPC n I` picks an older one; `SPC n v` pastes from the
   clipboard. A PDF becomes one image per page. Imported files move to
   `Org-inbox/imported/`.
-- **Save:** `SPC n p` (or `notes-push`) commits and pushes the notes to GitHub,
-  then copies them to Drive/Org. **Nothing runs on a schedule** — that key is the
-  checkpoint. If you ever want it automatic:
-  `systemctl --user enable --now notes-sync.timer`.
-- **Backup:** `./install.sh notes` puts `~/Documents/notes` in git with a private
-  GitHub repo. GitHub keeps the history; Drive is only the iPad's copy.
+- **Save:** `SPC n p` (or `notes-push`) commits, pulls with rebase and pushes.
+  Nothing runs on a schedule — that key is the checkpoint.
+- **On the iPad:** Working Copy clones the private notes repo; Orgro opens the
+  `.org` files out of that clone through the Files app, so `assets/` images show
+  inline. Pull in Working Copy to get the latest.
+- **Set up:** `./install.sh notes` creates the repo and the private GitHub repo.
 - **Settings:** `+scans-inbox` and friends in `doom/+scans.el`, per machine in
   `~/.config/doom/+local.el`.
 

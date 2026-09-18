@@ -217,7 +217,8 @@ For the handwriting loop: work the proof out in GoodNotes → export the region 
 → it syncs to Drive/Org-inbox → `SPC n i` in the note you're writing drops the
 newest export in, copied into `assets/`. `SPC n I` picks an older one. For
 anything on screen: PrtSc, select the area — GNOME puts it on the clipboard —
-then `SPC n v`. `SPC n p` saves: git push, then a copy to Drive/Org for Orgro.
+then `SPC n v`. `SPC n p` commits and pushes; the iPad pulls that repo in
+Working Copy and reads it in Orgro.
 
 ## 5. Competitive programming
 

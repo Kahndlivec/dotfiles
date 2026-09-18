@@ -1,37 +1,31 @@
 #!/usr/bin/env bash
-# Save the notes: commit and push to GitHub, then copy them to Drive so the
-# iPad can read them. Run it whenever you want a checkpoint:
+# Save the notes: commit and push to GitHub. That's the whole sync — the iPad
+# clones the same repo with Working Copy and reads it in Orgro.
 #
-#   notes-push          (alias)        SPC n p   (Emacs)
-#   systemctl --user start notes-sync  (same thing, from a service)
+#   notes-push        (terminal)        SPC n p   (Emacs)
 #
-# Drive gets a plain copy (one way — Emacs is the only writer). GitHub gets the
-# history, which is what actually protects the notes.
+# Nothing runs on a schedule; this is the checkpoint.
 set -uo pipefail
 NOTES="${NOTES_DIR:-$HOME/Documents/notes}"
 
 [[ -d "$NOTES" ]] || { echo "notes-sync: $NOTES does not exist"; exit 1; }
-
-if [[ -d "$NOTES/.git" ]]; then
-  git -C "$NOTES" add -A
-  if git -C "$NOTES" diff --cached --quiet; then
-    echo "notes-sync: nothing new to commit"
-  else
-    git -C "$NOTES" commit -qm "notes $(date '+%Y-%m-%d %H:%M')" && echo "notes-sync: committed"
-  fi
-  if git -C "$NOTES" remote | grep -qx origin; then
-    git -C "$NOTES" push -q && echo "notes-sync: pushed to GitHub" \
-      || echo "notes-sync: git push failed (offline? run: git -C $NOTES push)"
-  fi
-else
+if [[ ! -d "$NOTES/.git" ]]; then
   echo "notes-sync: $NOTES isn't a git repo yet — run: ~/dotfiles/install.sh notes"
+  exit 1
 fi
 
-if command -v rclone >/dev/null && rclone listremotes 2>/dev/null | grep -qx "gdrive:"; then
-  rclone sync "$NOTES" gdrive:Org \
-    --exclude '.git/**' --exclude '.#*' --exclude '*~' --exclude '*.tmp' \
-    --create-empty-src-dirs \
-    && echo "notes-sync: copied to Drive/Org" || echo "notes-sync: rclone failed"
+git -C "$NOTES" add -A
+if git -C "$NOTES" diff --cached --quiet; then
+  echo "notes-sync: nothing new to commit"
 else
-  echo "notes-sync: no gdrive remote — run: rclone config"
+  git -C "$NOTES" commit -qm "notes $(date '+%Y-%m-%d %H:%M')" && echo "notes-sync: committed"
+fi
+
+if git -C "$NOTES" remote | grep -qx origin; then
+  # Someone may have committed from the iPad (Working Copy) or the other machine.
+  git -C "$NOTES" pull -q --rebase --autostash 2>/dev/null || echo "notes-sync: pull failed — check for conflicts"
+  git -C "$NOTES" push -q && echo "notes-sync: pushed to GitHub" \
+    || echo "notes-sync: push failed (offline? run: git -C $NOTES push)"
+else
+  echo "notes-sync: no GitHub remote — run: ~/dotfiles/install.sh notes"
 fi

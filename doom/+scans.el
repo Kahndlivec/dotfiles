@@ -4,9 +4,9 @@
 ;;
 ;;   iPad (GoodNotes page or lasso)  →  export to Drive/Org-inbox  →  `SPC n i'
 ;;   drops the newest export into the org file you're writing, copied into
-;;   assets/ next to your notes  →  `SPC n p' saves everything: commits and
-;;   pushes the notes to GitHub, then copies them to Drive/Org so the iPad can
-;;   read them (Orgro). Nothing syncs on a schedule; you decide when.
+;;   assets/ next to your notes  →  `SPC n p' commits and pushes the notes to
+;;   GitHub. The iPad clones that same repo with Working Copy and reads it in
+;;   Orgro, images and all. Nothing syncs on a schedule; you decide when.
 ;;
 ;; Drive/notes stays untouched — that's GoodNotes' own backup of whole
 ;; notebooks. Point `+scans-inbox' at it if you ever want to import from there.
@@ -119,8 +119,8 @@ A PDF becomes one PNG per page when pdftoppm is available."
 
 ;;;###autoload
 (defun +scans-save-notes ()
-  "Save the notes: commit and push to GitHub, then copy them to Drive.
-Nothing happens on a schedule — this is the checkpoint."
+  "Save the notes: commit and push them to GitHub.
+That is the sync — the iPad pulls the same repo in Working Copy."
   (interactive)
   (let ((script (expand-file-name "~/dotfiles/bin/notes-sync")))
     (unless (file-executable-p script) (user-error "Not found: %s" script))
