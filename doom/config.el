@@ -567,6 +567,9 @@ screen instead of halfway between two."
        :desc "Find note"               "f" #'consult-denote-find
        :desc "Search notes"            "s" #'consult-denote-grep
        :desc "Paste image"             "v" #'org-download-clipboard
+       :desc "Insert newest iPad scan" "i" #'+scans-insert-latest
+       :desc "Insert a scan…"          "I" #'+scans-insert
+       :desc "Push notes to Drive"     "p" #'+scans-push-notes
        :desc "Agenda"                  "a" #'org-agenda
        :desc "Capture"                 "c" #'org-capture))
 
@@ -875,6 +878,7 @@ translation unit — without it, LSP in a real C++ project is guesswork."
 ;;; 12. Competitive programming layer
 ;;; ---------------------------------------------------------------------
 (load! "+cp")
+(load! "+scans")   ; iPad handwriting -> org notes, and notes -> Drive
 
 ;; Per-machine overrides (font size on the X13 vs the 4K desktop, etc.).
 ;; Not tracked in git — see .gitignore.

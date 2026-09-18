@@ -1,0 +1,14 @@
+# Pushes ~/Documents/notes to Google Drive so the iPad can read them (Orgro).
+# ONE WAY: Drive is a copy of the laptop, never the other way round — Emacs is
+# the only thing that writes notes, and a two-way sync would invent conflict
+# files. Anything you delete locally disappears from gdrive:Notes too.
+#   systemctl --user start notes-sync     push now  (or `notes-push`, or SPC n p)
+#   journalctl --user -u notes-sync -e    what it did
+[Unit]
+Description=Push org notes to Google Drive (one way)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/rclone sync %h/Documents/notes gdrive:Notes \
+    --exclude .git/** --exclude .#* --exclude *~ --exclude *.tmp \
+    --create-empty-src-dirs

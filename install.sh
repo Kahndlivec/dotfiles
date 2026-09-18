@@ -516,7 +516,23 @@ install_drive() {
       || fail "Drive mount — journalctl --user -u rclone-gdrive -e"
   else
     warn "no rclone remote named gdrive yet — run: rclone config  (then: ./install.sh drive)"
+    return
   fi
+
+  # The iPad loop: exports land in Drive/Notes-inbox, notes are pushed to
+  # Drive/Notes so Orgro on the iPad can read them.
+  rclone mkdir gdrive:Notes-inbox >/dev/null 2>&1
+  rclone mkdir gdrive:Notes >/dev/null 2>&1
+  mkdir -p "$HOME/Documents/notes/assets"
+  local u
+  for u in notes-sync.service notes-sync.timer; do
+    cmp -s "$D/systemd/$u" "$HOME/.config/systemd/user/$u" \
+      || cp "$D/systemd/$u" "$HOME/.config/systemd/user/$u"
+  done
+  systemctl --user daemon-reload
+  systemctl --user enable --now notes-sync.timer >/dev/null 2>&1 \
+    && ok "notes → Drive every 15 min (now: notes-push, or SPC n p)" \
+    || fail "notes-sync timer"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -619,6 +635,8 @@ check() {
   fi
   rclone listremotes 2>/dev/null | grep -x "gdrive:" >/dev/null && ok "rclone remote gdrive" || warn "no rclone remote gdrive yet"
   systemctl --user is-active rclone-gdrive >/dev/null 2>&1 && ok "Google Drive mounted" || warn "Google Drive not mounted yet"
+  systemctl --user is-active notes-sync.timer >/dev/null 2>&1 && ok "notes → Drive timer running" || warn "notes-sync timer not running (./install.sh drive)"
+  [[ -d "$HOME/GoogleDrive/Notes-inbox" ]] && ok "iPad inbox: ~/GoogleDrive/Notes-inbox" || warn "no ~/GoogleDrive/Notes-inbox yet"
   [[ -f "$HOME/.ssh/id_ed25519.pub" ]] && ok "SSH key" || fail "no SSH key"
   gh auth status >/dev/null 2>&1 && ok "gh logged in" || warn "gh not logged in yet"
   [[ -d "$HOME/.config/emacs" ]] && ok "Doom installed" || fail "Doom not installed"

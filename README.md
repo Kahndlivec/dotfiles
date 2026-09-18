@@ -135,6 +135,26 @@ GoodNotes exports land there; drag them into org buffers. Keep the org notes
 themselves in `~/Documents/notes` on local disk — autosave onto a network
 mount is slow and makes conflict copies.
 
+## iPad ↔ notes
+
+```
+GoodNotes / Freeform  →  Drive/Notes-inbox  →  SPC n i  →  note + assets/
+                                                              ↓ every 15 min
+                                    iPad (Orgro)  ←  Drive/Notes
+```
+
+- **On the iPad:** export the page as PNG (or the board as PDF) to
+  **Drive → Notes-inbox**.
+- **In Emacs:** `SPC n i` drops the newest export into the note you're writing,
+  copied into `assets/` beside your notes; `SPC n I` picks an older one; `SPC n v`
+  pastes an image from the clipboard. A PDF becomes one image per page, and
+  imported files move to `Notes-inbox/imported/`.
+- **Back to the iPad:** `notes-sync.timer` pushes `~/Documents/notes` to
+  **Drive/Notes** every 15 minutes — `SPC n p` or `notes-push` does it now.
+  One way only: Drive is a copy, Emacs is the only writer.
+- **Settings:** `+scans-inbox` and friends in `doom/+scans.el`, per machine in
+  `~/.config/doom/+local.el`.
+
 ## HHKB
 
 The keyboard's layout lives in its firmware, so it follows the keyboard to any
