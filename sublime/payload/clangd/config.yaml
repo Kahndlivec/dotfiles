@@ -1,0 +1,41 @@
+# ═════════════════════════════════════════════════════════════════════════
+#  ~/.config/clangd/config.yaml        <-- where clangd reads it on Linux
+#
+#  Without this, clangd assumes C++17 defaults and red-squiggles valid
+#  C++20. This is the third of the three places your flags live; it must
+#  agree with C++ CP.sublime-build and FastOlympicCoding.sublime-settings.
+#
+#  Unlike the Mac file there is no -I shim: clangd finds GCC's real
+#  <bits/stdc++.h> on its own.
+# ═════════════════════════════════════════════════════════════════════════
+
+CompileFlags:
+  Add:
+    - -std=c++20
+    - -Wall
+    - -Wextra
+    - -Wshadow
+    # Your template guards dbg() behind #ifdef LOCAL. Without this, clangd
+    # greys the whole block out as dead code and gives you no completion in it.
+    - -DLOCAL
+  Remove:
+    - -W*conversion
+
+Diagnostics:
+  ClangTidy:
+    Add:
+      - bugprone-*
+      - performance-*
+    Remove:
+      # These fire constantly on normal contest code and are pure noise.
+      - bugprone-easily-swappable-parameters
+      - bugprone-narrowing-conversions
+      - bugprone-implicit-widening-of-multiplication-result
+      - performance-avoid-endl
+  # A single .cpp with no compile_commands.json triggers this endlessly.
+  Suppress:
+    - drv_unknown_argument
+  UnusedIncludes: None
+
+InlayHints:
+  Enabled: false

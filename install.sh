@@ -14,19 +14,25 @@
 #
 #      ./install.sh              everything
 #      ./install.sh links        only re-link configs
-#      ./install.sh gnome        only GNOME keybindings/settings
+#      ./install.sh sublime      only Sublime Text and its settings
+#      ./install.sh gnome        only GNOME keybindings, dock and settings
 #      ./install.sh drive        only (re)enable the Google Drive mount
 #      ./install.sh check        report what's installed, change nothing
 #      ./install.sh audit        find leftovers from older setups, change nothing
 #      ./install.sh prune        remove what this setup replaces (shows it, asks first)
 #
 #  Shared by more than one person: everything personal (git name/email, SSH
-#  hosts, aliases, Emacs identity) lives in people/<name>/. The first run asks
-#  who uses the machine and links ~/.config/dotfiles/person to that folder.
+#  hosts, aliases) lives in people/<name>/. The first run asks who uses the
+#  machine and links ~/.config/dotfiles/person to that folder.
 #
-#  Configs are SYMLINKED, so ~/.zshrc, ~/.config/doom, ~/.config/nvim … are
+#  Configs are SYMLINKED, so ~/.zshrc, ~/.config/nvim, ~/.config/sioyek … are
 #  the repo. Edit them in place, then `dotsync "message"` to commit + push.
 #  Anything a link would replace is moved to ~/dotfiles-backup-<timestamp>/.
+#  The one exception is Sublime Text, whose settings are copied: see
+#  sublime/README.md.
+#
+#  emacs/ is PARKED: the old Doom Emacs setup, kept for reference. Nothing in
+#  this script installs, links or reads it.
 # ═══════════════════════════════════════════════════════════════════════════
 set -uo pipefail
 
@@ -314,7 +320,7 @@ DESKTOP
   fi
   have starship && ok "starship"
 
-  # Fonts: JetBrainsMono Nerd Font (editors, terminal) + Nerd symbols (Doom icons).
+  # Fonts: JetBrainsMono Nerd Font (editors, terminal) + Nerd symbols (icons).
   local fdir="$HOME/.local/share/fonts" f
   mkdir -p "$fdir"
   for f in JetBrainsMono NerdFontsSymbolsOnly; do
@@ -385,14 +391,12 @@ choose_person() {
   [[ -n "$PERSON" ]] || { fail "no name given"; return 1; }
   local dir="$D/people/$PERSON"
   if [[ ! -d "$dir" ]]; then
-    local full gname gmail
-    echo "  New person — three questions, saved in people/$PERSON/:"
-    read -rp "  Full name (Emacs/org author): " full
+    local gname gmail
+    echo "  New person — two questions, saved in people/$PERSON/:"
     read -rp "  Git name (shown on commits, e.g. your GitHub username): " gname
     read -rp "  Git email (the one on your GitHub account): " gmail
     mkdir -p "$dir"
     printf '# Git identity for %s.\n[user]\n\tname = %s\n\temail = %s\n' "$PERSON" "$gname" "$gmail" > "$dir/gitconfig"
-    printf ';;; doom.el — identity for Emacs.  -*- lexical-binding: t; -*-\n(setq user-full-name "%s"\n      user-mail-address "%s")\n' "$full" "$gmail" > "$dir/doom.el"
     printf '# %s: aliases and functions for your machines — sourced at the end of zsh/.zshrc.\n' "$PERSON" > "$dir/zshrc"
     printf '# %s: your SSH hosts — copied to ~/.ssh/config.d/person.conf.\n' "$PERSON" > "$dir/ssh_config"
     ok "created people/$PERSON — commit it later: dotsync \"add $PERSON\""
@@ -420,11 +424,18 @@ install_links() {
   link tmux/.tmux.conf            "$HOME/.tmux.conf"
   link starship/starship.toml     "$HOME/.config/starship.toml"
   link nvim                       "$HOME/.config/nvim"
-  link doom                       "$HOME/.config/doom"
+  link sioyek/prefs_user.config   "$HOME/.config/sioyek/prefs_user.config"
+  link sioyek/keys_user.config    "$HOME/.config/sioyek/keys_user.config"
   link vscode/settings.json       "$HOME/.config/Code/User/settings.json"
   link vscode/keybindings.json    "$HOME/.config/Code/User/keybindings.json"
   link clang-format/.clang-format "$HOME/.clang-format"
   link env/10-path.conf           "$HOME/.config/environment.d/10-path.conf"
+
+  # ~/.config/doom used to link to doom/ in this repo. That folder is now
+  # emacs/doom (parked), so the old link points nowhere — remove it.
+  if [[ -L "$HOME/.config/doom" && ! -e "$HOME/.config/doom" ]]; then
+    rm -f "$HOME/.config/doom" && ok "removed the old ~/.config/doom link (Emacs is parked)"
+  fi
 
   # gh rewrites its config on `gh config set`, which would replace a symlink —
   # so it's copied once instead.
@@ -453,7 +464,7 @@ install_links() {
 # ═══════════════════════════════════════════════════════════════════════════
 install_shell_and_editors() {
   hdr "5  Shell, SSH key, editors"
-  export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.config/emacs/bin:$PATH"
+  export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
 
   # zsh as login shell.
   if have zsh && [[ "$(getent passwd "$USER" | cut -d: -f7)" != "$(command -v zsh)" ]]; then
@@ -468,16 +479,6 @@ install_shell_and_editors() {
     ssh-keygen -t ed25519 -C "$USER@$(hostname)" -f "$HOME/.ssh/id_ed25519" && ok "SSH key created"
   else
     sk "SSH key exists"
-  fi
-
-  # Doom Emacs.
-  if [[ ! -d "$HOME/.config/emacs" ]]; then
-    git clone -q --depth 1 https://github.com/doomemacs/doomemacs "$HOME/.config/emacs" && ok "cloned Doom"
-    echo "  doom install — several minutes"
-    "$HOME/.config/emacs/bin/doom" install --force && ok "doom install" || fail "doom install"
-  else
-    echo "  doom sync"
-    "$HOME/.config/emacs/bin/doom" sync && ok "doom sync" || fail "doom sync"
   fi
 
   # Neovim plugins, headless.
@@ -500,6 +501,20 @@ install_shell_and_editors() {
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  5b. Sublime Text — its own installer, so it can also run on its own.
+#      Adds Sublime's apt repo, Package Control, and copies the settings in
+#      sublime/payload (keymap, vim layer, build system, clangd flags).
+# ═══════════════════════════════════════════════════════════════════════════
+install_sublime() {
+  hdr "5b Sublime Text"
+  if pgrep -x sublime_text >/dev/null 2>&1; then
+    fail "Sublime Text is open — quit it, then run: ./install.sh sublime"
+    return
+  fi
+  bash "$D/sublime/install.sh" || fail "Sublime Text setup (fix, then: ./install.sh sublime)"
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  6. Google Drive
 # ═══════════════════════════════════════════════════════════════════════════
 install_drive() {
@@ -519,14 +534,14 @@ install_drive() {
     return
   fi
 
-  # Drive has exactly one job here: carrying GoodNotes exports in. The notes
-  # themselves live in git. Drive/notes (GoodNotes' own backup) is left alone.
-  rclone mkdir gdrive:Org-inbox >/dev/null 2>&1
-  mkdir -p "$HOME/Documents/notes/assets"
+  # Drive/Skripta is where Sioyek's export (g e) puts a copy of a PDF with
+  # your highlights baked in, so the iPad can read it. Drive/notes (GoodNotes'
+  # own backup) is left alone.
+  rclone mkdir gdrive:Skripta >/dev/null 2>&1 && ok "Sioyek exports (g e) go to ~/GoogleDrive/Skripta → read them on the iPad"
+  # A timer from a much older version of this script.
   rm -f "$HOME/.config/systemd/user/notes-sync.service" "$HOME/.config/systemd/user/notes-sync.timer"
   systemctl --user disable --now notes-sync.timer >/dev/null 2>&1
   systemctl --user daemon-reload
-  ok "iPad exports go to Drive/Org-inbox → SPC n i"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -538,8 +553,7 @@ install_notes() {
   mkdir -p "$N/assets"
   if [[ ! -d "$N/.git" ]]; then
     git -C "$N" init -q -b main
-    printf '%s\n' '# Emacs scratch files' '.#*' '*~' '\#*\#' '.org-id-locations' > "$N/.gitignore"
-    [[ -f "$N/README.md" ]] || cp "$D/templates/notes-README.md" "$N/README.md"
+    printf '%s\n' '# editor scratch files' '.#*' '*~' '\#*\#' '*.sublime-workspace' > "$N/.gitignore"
     git -C "$N" add -A && git -C "$N" commit -qm "notes" && ok "git repo created in ~/Documents/notes"
   else
     sk "already a git repo"
@@ -560,7 +574,7 @@ install_notes() {
   else
     warn "gh not logged in — run gh auth login, then ./install.sh notes"
   fi
-  ok "save a checkpoint any time with: notes-push  (or SPC n p)"
+  ok "save a checkpoint any time with: notes-push"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -577,12 +591,12 @@ install_gnome() {
 # ═══════════════════════════════════════════════════════════════════════════
 check() {
   hdr "Check"
-  export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$HOME/.config/emacs/bin:$PATH"
+  export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
   local c nv
 
   echo "  ── programs"
-  for c in zsh tmux git gh rg fd g++ gdb clangd cmake emacs nvim code brave-browser \
-           ghostty starship node npm pyright claude ruff direnv wl-copy tailscale doom \
+  for c in zsh tmux git gh rg fd g++ gdb clangd cmake subl nvim code brave-browser \
+           ghostty starship node npm pyright claude ruff direnv wl-copy tailscale \
            rclone lualatex latexmk dvisvgm sioyek timeshift solaar batcat eza delta zoxide docker; do
     have "$c" && ok "$c" || fail "$c missing"
   done
@@ -613,7 +627,9 @@ check() {
   for pair in "zsh/.zshrc:$HOME/.zshrc" "zsh/.zprofile:$HOME/.zprofile" "git/.gitconfig:$HOME/.gitconfig" \
               "ghostty/config.ghostty:$HOME/.config/ghostty/config.ghostty" \
               "tmux/.tmux.conf:$HOME/.tmux.conf" "starship/starship.toml:$HOME/.config/starship.toml" \
-              "nvim:$HOME/.config/nvim" "doom:$HOME/.config/doom" \
+              "nvim:$HOME/.config/nvim" \
+              "sioyek/prefs_user.config:$HOME/.config/sioyek/prefs_user.config" \
+              "sioyek/keys_user.config:$HOME/.config/sioyek/keys_user.config" \
               "vscode/settings.json:$HOME/.config/Code/User/settings.json" \
               "vscode/keybindings.json:$HOME/.config/Code/User/keybindings.json" \
               "env/10-path.conf:$HOME/.config/environment.d/10-path.conf"; do
@@ -621,6 +637,20 @@ check() {
     if [[ -L "$dst" && "$(readlink -f "$dst")" == "$(readlink -f "$src")" ]]; then ok "${pair%%:*}"
     else fail "${pair%%:*} not linked (fix: ./install.sh links)"; fi
   done
+
+  echo "  ── Sioyek"
+  # Sioyek stops reading a config file at the first non-ASCII character and
+  # says nothing, so one accented letter in a comment disables everything
+  # below it.
+  local sf bad_line
+  for sf in prefs_user.config keys_user.config; do
+    bad_line="$(LC_ALL=C grep -n '[^[:print:][:space:]]' "$D/sioyek/$sf" | head -1 | cut -d: -f1)"
+    [[ -z "$bad_line" ]] && ok "sioyek/$sf is plain ASCII" \
+      || fail "sioyek/$sf line $bad_line has a non-ASCII character — Sioyek ignores everything after it"
+  done
+
+  echo "  ── Sublime Text"
+  bash "$D/sublime/install.sh" check || fail "Sublime Text setup incomplete (fix: ./install.sh sublime)"
 
   echo "  ── person"
   if [[ -L "$PERSON_LINK" && -d "$PERSON_LINK" ]]; then
@@ -663,7 +693,7 @@ check() {
   fi
   rclone listremotes 2>/dev/null | grep -x "gdrive:" >/dev/null && ok "rclone remote gdrive" || warn "no rclone remote gdrive yet"
   systemctl --user is-active rclone-gdrive >/dev/null 2>&1 && ok "Google Drive mounted" || warn "Google Drive not mounted yet"
-  [[ -d "$HOME/GoogleDrive/Org-inbox" ]] && ok "iPad inbox: ~/GoogleDrive/Org-inbox" || warn "no ~/GoogleDrive/Org-inbox yet"
+  [[ -d "$HOME/GoogleDrive/Skripta" ]] && ok "Sioyek exports: ~/GoogleDrive/Skripta" || warn "no ~/GoogleDrive/Skripta yet (./install.sh drive)"
   if [[ -d "$HOME/Documents/notes/.git" ]]; then
     git -C "$HOME/Documents/notes" remote | grep -x origin >/dev/null \
       && ok "notes in git, pushed to $(git -C "$HOME/Documents/notes" remote get-url origin)" \
@@ -673,7 +703,7 @@ check() {
   fi
   [[ -f "$HOME/.ssh/id_ed25519.pub" ]] && ok "SSH key" || fail "no SSH key"
   gh auth status >/dev/null 2>&1 && ok "gh logged in" || warn "gh not logged in yet"
-  [[ -d "$HOME/.config/emacs" ]] && ok "Doom installed" || fail "Doom not installed"
+  [[ -d "$HOME/.config/emacs" ]] && warn "~/.config/emacs is still here — Emacs is no longer part of this setup (./install.sh prune)"
   [[ -z "$(git -C "$D" status --porcelain)" ]] && ok "dotfiles repo clean" || warn "uncommitted changes: git -C $D status"
 }
 
@@ -682,15 +712,19 @@ check() {
 # ═══════════════════════════════════════════════════════════════════════════
 prune() {
   hdr "Prune — software this setup replaces"
-  local pkgs=() apps=() p a sim ans missing=()
+  local pkgs=() apps=() dirs=() p a d sim ans missing=()
   while read -r p; do dpkg -s "$p" >/dev/null 2>&1 && pkgs+=("$p"); done < <(list "$D/packages/remove-apt.txt")
   have flatpak && mapfile -t apps < <(flatpak list --app --columns=application 2>/dev/null | sed '/^$/d')
+  # Doom Emacs lived here: the Doom clone plus every package it built. Your
+  # own Emacs config is not in there — it is parked in the repo under emacs/.
+  [[ -d "$HOME/.config/emacs" ]] && dirs+=("$HOME/.config/emacs")
 
-  if ((${#pkgs[@]} == 0 && ${#apps[@]} == 0)); then
+  if ((${#pkgs[@]} == 0 && ${#apps[@]} == 0 && ${#dirs[@]} == 0)); then
     ok "nothing to remove"; return 0
   fi
   echo "  apt packages:   ${pkgs[*]:-none}"
   echo "  flatpak apps:   ${apps[*]:-none}"
+  echo "  folders:        ${dirs[*]:-none}"
 
   if ((${#pkgs[@]})); then
     sim="$(apt-get -s purge "${pkgs[@]}" 2>/dev/null | awk '/^(Purg|Remv) /{print $2}')"
@@ -708,6 +742,9 @@ prune() {
   fi
   if printf '%s\n' "${pkgs[@]}" | grep -x neovim >/dev/null && [[ ! -x "$HOME/.local/bin/nvim" ]]; then
     missing+=("Neovim in ~/.local/bin")
+  fi
+  if { printf '%s\n' "${pkgs[@]}" | grep '^emacs' >/dev/null || ((${#dirs[@]})); } && ! have subl; then
+    missing+=("Sublime Text")
   fi
   if ((${#apps[@]})); then
     for a in "${apps[@]}"; do
@@ -750,6 +787,10 @@ prune() {
     sudo rm -rf /var/lib/flatpak
     rmdir "$HOME/.var/app" "$HOME/.var" 2>/dev/null || true
   fi
+  for d in "${dirs[@]}"; do
+    rm -rf "$d" && ok "removed ${d/#$HOME/\~}"
+  done
+  if [[ -L "$HOME/.config/doom" ]]; then rm -f "$HOME/.config/doom" && ok "removed the ~/.config/doom link"; fi
   install_gnome
 }
 
@@ -784,8 +825,8 @@ audit() {
            find "$HOME/.config" "$HOME/.local/bin" "$HOME/.local/share/applications" -maxdepth 2 -type l 2>/dev/null)
 
   echo "  ── files that override or shadow this setup"
-  for f in .emacs .emacs.el .emacs.d; do
-    [[ -e "$HOME/$f" ]] && found "~/$f — Emacs loads this INSTEAD of Doom"
+  for f in .emacs .emacs.el .emacs.d .doom.d; do
+    [[ -e "$HOME/$f" ]] && found "~/$f — Emacs config; Emacs is no longer part of this setup"
   done
   [[ -e "$HOME/.config/git/config" ]] && found "~/.config/git/config — git reads it on top of ~/.gitconfig"
   for f in .zshenv .zlogin .zlogout .bash_profile; do
@@ -807,9 +848,8 @@ audit() {
     [[ -d "$HOME/$x" ]] && found "~/$x — version manager; its node/python can shadow apt's"
   done
   dpkg -s neovim >/dev/null 2>&1 && found "apt neovim — old version next to ours in ~/.local/bin (sudo apt remove neovim)"
-  local emacs_bin; emacs_bin="$(readlink -f /usr/bin/emacs 2>/dev/null)"
-  [[ -n "$emacs_bin" && "$emacs_bin" != *pgtk* ]] && found "/usr/bin/emacs is $emacs_bin, not the Wayland build (emacs-pgtk)"
-  snap list emacs >/dev/null 2>&1 && found "Emacs snap installed as well"
+  have emacs && found "Emacs is installed — no longer part of this setup (./install.sh prune)"
+  snap list emacs >/dev/null 2>&1 && found "Emacs snap installed (sudo snap remove emacs)"
   local pair name deb snp flat n
   for pair in "VS Code:code:code:com.visualstudio.code" "Brave:brave-browser:brave:com.brave.Browser" \
               "Ghostty:ghostty:ghostty:com.mitchellh.ghostty" "Spotify:spotify-client:spotify:com.spotify.Client" \
@@ -851,11 +891,8 @@ audit() {
   fi
 
   echo "  ── state an older config left behind (safe to rebuild)"
-  if [[ -d "$HOME/.config/emacs" ]]; then
-    [[ -x "$HOME/.config/emacs/bin/doom" ]] \
-      && found "~/.config/emacs — existing Doom install, packages built for whatever config it had" \
-      || found "~/.config/emacs — an Emacs config that isn't Doom"
-  fi
+  [[ -d "$HOME/.config/emacs" ]] && found "~/.config/emacs — Doom Emacs from the old setup (./install.sh prune removes it)"
+  [[ -L "$HOME/.config/doom" && ! -e "$HOME/.config/doom" ]] && found "~/.config/doom — dead link to the old Doom config (./install.sh links removes it)"
   if [[ -d "$HOME/.local/share/nvim" && "$(readlink -f "$HOME/.config/nvim")" != "$realD/nvim" ]]; then
     found "~/.local/share/nvim — plugins from a different Neovim config"
   fi
@@ -884,18 +921,20 @@ case "$MODE" in
     install_user_tools
     install_links
     install_shell_and_editors
+    install_sublime
     install_drive
     install_gnome
     check
     ;;
   links) install_links ;;
+  sublime) install_sublime ;;
   gnome) install_gnome ;;
   drive) install_drive ;;
   notes) install_notes ;;
   check) check ;;
   audit) audit ;;
   prune) prune ;;
-  *) echo "usage: $0 [all|links|gnome|drive|notes|check|audit|prune]"; exit 1 ;;
+  *) echo "usage: $0 [all|links|sublime|gnome|drive|notes|check|audit|prune]"; exit 1 ;;
 esac
 
 hdr "Done"
@@ -914,7 +953,10 @@ if [[ "$MODE" == all ]]; then
     2. gh auth status || gh auth login, then: gh ssh-key add ~/.ssh/id_ed25519.pub
     3. sudo tailscale up
     4. rclone config         (new remote "gdrive", type drive), then ./install.sh drive
-    5. In Emacs:             M-x pdf-tools-install
+    5. Open Sublime Text (Super+E), wait two minutes while Package Control
+       installs its packages, quit and reopen. Then Project → Open Project →
+       ~/Documents/cp/cp.sublime-project, and Tools → Build System → C++ CP
     6. Brave Sync, and log in to Spotify and Telegram
+    7. If this machine had the old Emacs setup: ./install.sh prune
 EOF
 fi

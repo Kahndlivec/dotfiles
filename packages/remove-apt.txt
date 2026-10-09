@@ -9,5 +9,10 @@ gnome-software-plugin-flatpak   # flatpak apps move to apt/snap
 gnome-software                  # App Center is the one app store
 flatpak
 usb-creator-gtk                 # Disks → Restore Disk Image makes USB installers
+emacs-pgtk                      # Emacs is gone: Sublime Text is the editor (config parked in emacs/)
+emacs-gtk
+emacs-nox
+emacs-lucid
+emacs
 xclip                           # X11 clipboard; Wayland uses wl-clipboard
 evtest                          # wev does this on Wayland

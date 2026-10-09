@@ -138,6 +138,9 @@ fi
 mapfile -t old_favs < <(gsettings get org.gnome.shell favorite-apps | tr -d "[]'" | tr ',' '\n' | sed 's/^ *//' | sed '/^$/d')
 favs=("${SLOT_IDS[@]}")
 for f in "${old_favs[@]}"; do
+  # An app that was uninstalled (Emacs, say) leaves its name behind in the
+  # dock list. Drop it, or it comes back the day something reinstalls it.
+  find_desktop "$f" >/dev/null || continue
   printf '%s\n' "${favs[@]}" | grep -qxF "$f" || favs+=("$f")
 done
 fav_value="[$(printf "'%s'," "${favs[@]}" | sed 's/,$//')]"
@@ -179,8 +182,8 @@ ok "Super+Q close, Alt+Tab windows, Super+Tab apps"
 
 echo "  desktop"
 
-# Key repeat. Your Mac ended on KeyRepeat 2 / InitialKeyRepeat 15 because
-# faster than 30 ms outran Emacs' redisplay — same values here, in ms.
+# Key repeat. Your Mac ended on KeyRepeat 2 / InitialKeyRepeat 15 — the same
+# values here, in ms.
 gset org.gnome.desktop.peripherals.keyboard delay "uint32 225"
 gset org.gnome.desktop.peripherals.keyboard repeat-interval "uint32 30"
 

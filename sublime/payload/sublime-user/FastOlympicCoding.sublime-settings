@@ -1,0 +1,74 @@
+{
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Packages/User/FastOlympicCoding.sublime-settings
+    //  No platform suffix. This file overrides the package's own
+    //  "FastOlympicCoding (Linux).sublime-settings", which is the defaults
+    //  layer and gets reverted whenever Package Control updates the package.
+    //
+    //  Open it any time: Ctrl+Shift+P → "FastOlympicCoding: Open Settings"
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // ── The cp + Tab template ──────────────────────────────────────────────
+    // Every <name>.cpp in this folder becomes <name>+Tab. It ships as null,
+    // which makes Tab fall through to a plain autocomplete. Relative paths
+    // resolve against the package dir, so this is absolute.
+    "algorithms_base": "__CP_HOME__/Documents/cp/algo",
+
+    // Where "FastOlympicCoding: Setup Contest" drops folders.
+    "contests_base": "__CP_HOME__/Documents/cp",
+
+
+    // ── Compiler ───────────────────────────────────────────────────────────
+    // This is the second of the THREE places your flags live. It must agree
+    // with C++ CP.sublime-build and ~/.config/clangd/config.yaml.
+    //
+    // Differences from the package defaults: -std=gnu++11 → -std=c++20,
+    // sanitizers on, -DLOCAL so dbg() is live. Unlike the Mac file there is
+    // no -I shim: GCC on Linux has a real <bits/stdc++.h>.
+    //
+    // Placeholders FOC substitutes: {source_file} {source_file_dir}
+    //                               {file_name} {file} {args}
+    "run_settings": [
+        {
+            "name": "C++",
+            "extensions": ["cpp", "cc", "cxx"],
+
+            // -DLOCAL matters: your template guards dbg() behind #ifdef LOCAL
+            // and clangd already passes -DLOCAL. Without it here, clangd shows
+            // you a live dbg() that compiles to nothing when FOC runs it.
+            "compile_cmd": "g++ -std=c++20 -O1 -g -DLOCAL -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all -Wall -Wextra -Wshadow '{source_file}' -o '{file_name}'",
+
+            "run_cmd": "./\"{file_name}\" {args} -debug",
+
+            // -fsyntax-only: lint should not link.
+            "lint_compile_cmd": "g++ -std=c++20 -fsyntax-only -DLOCAL -Wall -Wextra -Wshadow -I '{source_file_dir}' '{source_file}'"
+        },
+
+        {
+            "name": "Python",
+            "extensions": ["py"],
+            "compile_cmd": null,
+            "run_cmd": "python3 '{source_file}'"
+        }
+    ],
+
+
+    // ── Behaviour ──────────────────────────────────────────────────────────
+    "lint_enabled": true,
+    "lint_error_region_scope": "invalid.illegal",
+    "lint_warning_region_scope": "constant",
+
+    // Seconds before FOC calls a stress-test iteration a TLE.
+    "stress_time_limit_seconds": 2,
+
+    // FOC's own C++ class-name expander (vector→vector<>, pair→pair<,>).
+    // Off because it fights clangd's completions: it registers an
+    // on_modified hook that force-reopens the popup.
+    "cpp_complete_enabled": false,
+
+    // Don't yank the sidebar away every time you run.
+    "close_sidebar": false,
+
+    // Keep the ":tests" files next to the source.
+    "tests_relative_dir": ""
+}

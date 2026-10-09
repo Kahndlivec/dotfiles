@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Save the notes: commit and push to GitHub. That's the whole sync — the iPad
-# clones the same repo with Working Copy and reads it in Orgro.
+# Save ~/Documents/notes: commit and push to GitHub. That's the whole sync.
 #
-#   notes-push        (terminal)        SPC n p   (Emacs)
+#   notes-push        (terminal)
 #
 # Nothing runs on a schedule; this is the checkpoint.
 set -uo pipefail

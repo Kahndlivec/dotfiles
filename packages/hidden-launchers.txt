@@ -5,8 +5,6 @@ debian-uxterm.desktop               # XTerm — pulled in by TeX Live
 debian-xterm.desktop
 display-im7.q16.desktop             # ImageMagick viewer
 display-im6.q16.desktop
-emacsclient.desktop                 # Emacs (Client) — Super+E opens the real one
-emacs-term.desktop                  # Emacs (Terminal)
 info.desktop                        # TeXInfo
 texdoctk.desktop                    # TeXdoctk
 prerex.desktop                      # TeX Live extras

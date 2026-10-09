@@ -1,0 +1,56 @@
+{
+    // Linux port of the Mac build file. Two differences:
+    //   · g++ instead of clang++. On Linux g++ is the real GCC, the same
+    //     compiler family the judges run, and its sanitizers work fully.
+    //   · no -I shim. GCC ships a real <bits/stdc++.h>.
+    //
+    // Everything runs in Sublime's panel except "interactive", which opens
+    // Ghostty because the panel cannot accept typed input.
+    //
+    // Variant names are one word on purpose: the leader map in
+    // .neovintageousrc can only pass a name without spaces (SPC c j → judge).
+    "shell_cmd": "g++ -std=c++20 -O1 -g -Wall -Wextra -Wshadow -Wfloat-equal -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -DLOCAL '${file}' -o '${file_path}/${file_base_name}_dbg' && '${file_path}/${file_base_name}_dbg'",
+
+    "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+    "working_dir": "${file_path}",
+    "selector": "source.c++",
+
+    "variants":
+    [
+        {
+            // sanitizers, stdin from in.txt
+            "name": "debug-in",
+            "shell_cmd": "g++ -std=c++20 -O1 -g -Wall -Wextra -Wshadow -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -DLOCAL '${file}' -o '${file_path}/${file_base_name}_dbg' && '${file_path}/${file_base_name}_dbg' < '${file_path}/in.txt'"
+        },
+        {
+            // sanitizers, in a Ghostty window so you can type
+            "name": "interactive",
+            "shell_cmd": "g++ -std=c++20 -O1 -g -Wall -Wextra -Wshadow -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -DLOCAL '${file}' -o '${file_path}/${file_base_name}_dbg' && bash __CP_HOME__/.cp/run-term.sh '${file_path}' './${file_base_name}_dbg'"
+        },
+        {
+            // -O2, timed, stdin from in.txt
+            "name": "fast-in",
+            "shell_cmd": "g++ -std=c++20 -O2 -Wall -Wextra -DLOCAL '${file}' -o '${file_path}/${file_base_name}' && time '${file_path}/${file_base_name}' < '${file_path}/in.txt'"
+        },
+        {
+            // -O2, no input file
+            "name": "fast",
+            "shell_cmd": "g++ -std=c++20 -O2 -Wall -Wextra -DLOCAL '${file}' -o '${file_path}/${file_base_name}' && '${file_path}/${file_base_name}'"
+        },
+        {
+            // -O2 with checked containers, the last look before submitting
+            "name": "judge",
+            "shell_cmd": "bash __CP_HOME__/.cp/judge.sh '${file}'"
+        },
+        {
+            // against brute.cpp with gen.cpp, 1000 cases
+            "name": "stress",
+            "shell_cmd": "bash __CP_HOME__/.cp/stress.sh '${file}' 1000"
+        },
+        {
+            // syntax check only, no binary
+            "name": "compile",
+            "shell_cmd": "g++ -std=c++20 -Wall -Wextra -Wshadow -fsyntax-only '${file}' && echo 'OK - compiles clean'"
+        }
+    ]
+}

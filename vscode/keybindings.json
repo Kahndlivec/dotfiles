@@ -9,7 +9,7 @@
     //    2. SPC leader  in normal mode does the real work — files, search,
     //                   splits, rename, format, debug, git, notebooks. Defined
     //                   in the vim.g.vscode branch of nvim/init.lua, so it's
-    //                   the same muscle memory as Doom and standalone nvim.
+    //                   the same muscle memory as Sublime Text and standalone nvim.
     //    3. Ctrl        only for what must work OUTSIDE normal mode: moving
     //                   between panes/sidebar/terminal, run, completion.
     //
@@ -22,7 +22,7 @@
 
 
     // ── PANES ──────────────────────────────────────────────────────────────
-    // Same keys as tmux + nvim (vim-tmux-navigator) and Doom. navigate* crosses
+    // Same keys as tmux + nvim (vim-tmux-navigator) and Sublime. navigate* crosses
     // out of the editor grid into the terminal panel and the sidebar too.
     // Skipped in insert mode so Ctrl+H stays backspace and Ctrl+J newline.
     { "key": "ctrl+h", "command": "workbench.action.navigateLeft",  "when": "!editorTextFocus || neovim.mode != insert" },

@@ -7,7 +7,7 @@ zsh-autosuggestions
 zsh-syntax-highlighting
 tmux
 ncurses-term            # tmux-256color terminfo
-wl-clipboard            # wl-copy / wl-paste: nvim, tmux, org-download
+wl-clipboard            # wl-copy / wl-paste: nvim, tmux
 
 # ── core CLI ────────────────────────────────────────────────────────
 git
@@ -34,22 +34,11 @@ wev                     # shows what a key sends — for checking the HHKB remap
 
 # ── C / C++ ─────────────────────────────────────────────────────────
 build-essential         # gcc, g++, make — CP and real projects
-gdb                     # speaks DAP natively → dape in Emacs
+gdb
 clangd
 clang-format
 cmake
 ninja-build
-
-# ── build deps: Emacs pdf-tools and vterm ───────────────────────────
-autoconf
-automake
-libtool-bin
-pkgconf
-libpoppler-glib-dev
-libpoppler-private-dev
-libpng-dev
-zlib1g-dev
-libvterm-dev
 
 # ── documents ───────────────────────────────────────────────────────
 pandoc
@@ -58,7 +47,7 @@ poppler-utils
 
 # ── LaTeX: the whole TeX Live (~6 GB) — no "File `x.sty' not found", ever
 texlive-full
-dvisvgm                 # crisp SVG previews in org on a 4K screen
+dvisvgm                 # DVI/PDF → SVG
 latexmk
 
 # ── Google Drive ────────────────────────────────────────────────────
@@ -76,12 +65,12 @@ shellcheck
 shfmt
 
 # ── editors ─────────────────────────────────────────────────────────
-emacs-pgtk              # native Wayland build; crisp on scaled 4K
-# neovim comes from the GitHub release (apt's is too old for the config)
+# Sublime Text comes from its own apt repo (sublime/install.sh).
+# Neovim comes from the GitHub release (apt's is too old for the config).
 
 # ── apps ────────────────────────────────────────────────────────────
 keepassxc
-sioyek                  # PDF reader for maths: jump to a cited equation and back
+sioyek                  # PDF reader for the skripta: highlights by kind, jump to a cited equation and back
 timeshift               # system snapshots — roll back a bad update
 solaar                  # Logitech mouse/keyboard settings
 dconf-editor            # inspect any GNOME setting
@@ -96,6 +85,3 @@ tree
 ncdu                    # what's using the disk
 rsync
 valgrind                # memory errors in C/C++
-
-# ── fonts ───────────────────────────────────────────────────────────
-fonts-inter             # doom-variable-pitch-font

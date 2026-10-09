@@ -13,7 +13,6 @@
 !README.md
 !install.sh
 !packages/*.txt
-!templates/*
 !gnome/*.sh
 !bin/*
 !gnome/shortcuts.conf
@@ -33,11 +32,11 @@
 !gh/config.yml
 !vscode/*.json
 !nvim/**
-!doom/**
-# doom/snippets/c++-mode/cp has no extension — named explicitly so it can
-# never be dropped silently.
-!doom/snippets/**
-!doom/templates/**
+!sioyek/*.config
+# Sublime Text: settings are copied from sublime/payload by sublime/install.sh.
+!sublime/**
+# Parked: the old Doom Emacs setup. install.sh never touches it.
+!emacs/**
 
 # Folders that are yours to fill, contents unpredictable.
 !hhkb/**
@@ -61,12 +60,15 @@ id_dsa*
 *.tar.gz
 
 # Doom build artefacts and per-machine overrides — never portable.
-doom/.local/
-doom/eln-cache/
-doom/**/*.elc
-doom/**/*.eln
-doom/custom.el
-doom/+local.el
+emacs/doom/.local/
+emacs/doom/eln-cache/
+emacs/**/*.elc
+emacs/**/*.eln
+emacs/doom/custom.el
+emacs/doom/+local.el
+
+# Sublime's per-machine session state, should it ever land in the repo.
+*.sublime-workspace
 
 # ── SSH: config and known_hosts are safe and wanted ─────────────────────────
 # Listed last so they win over the id_* block above. Keys are per machine

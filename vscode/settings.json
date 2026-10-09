@@ -2,7 +2,7 @@
   // ═══════════════════════════════════════════════════════════════════════
   //  VS Code settings.json  →  ~/.config/Code/User/settings.json (symlink)
   //  Target: agency frontend (TS/JSX/HTML) + heavy AI-agent work. Everything
-  //  else lives in Doom Emacs. Vim layer: vscode-neovim (real Neovim embedded),
+  //  else lives in Sublime Text. Vim layer: vscode-neovim (real Neovim embedded),
   //  and SPC-leader commands come from the vim.g.vscode branch of nvim/init.lua.
   //
   //  Sections marked [PORT] are your Sublime setting, translated.
@@ -336,8 +336,8 @@
   },
 
   // ── C++ ────────────────────────────────────────────────────────────────
-  // C++ normally lives in Emacs; this is for the odd file opened here.
-  // clangd instead of Microsoft's IntelliSense — same engine Emacs (eglot)
+  // C++ normally lives in Sublime Text; this is for the odd file opened here.
+  // clangd instead of Microsoft's IntelliSense — same engine Sublime (LSP)
   // uses, so diagnostics match between the two editors.
   //
   // The two engines fight if both are live, so IntelliSense goes off. Note

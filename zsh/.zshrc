@@ -17,8 +17,8 @@ autoload -Uz compinit && compinit -C
 # do it properly; on a single-user machine it buys nothing.
 
 # ─── Keys ──────────────────────────────────────────────────────────
-# Emacs keys in the shell, deliberately: the same C-a/C-e/C-r work inside
-# emacsclient, and vi mode in zsh has no visual mode indicator.
+# Emacs-style keys in the shell, deliberately: C-a/C-e/C-r are what every
+# other prompt uses, and vi mode in zsh has no visual mode indicator.
 bindkey -e
 
 # ─── PATH ──────────────────────────────────────────────────────────
@@ -27,33 +27,21 @@ typeset -U path PATH
 path=(
   "$HOME/.local/bin"
   "$HOME/.npm-global/bin"
-  "$HOME/.config/emacs/bin"   # doom CLI: doom sync / doom doctor
   $path
 )
 
 # ─── Editor ────────────────────────────────────────────────────────
-# config.el starts the server inside the GUI Emacs (Super+E), so
-# emacsclient talks to THAT window. -a nvim is the fallback when Emacs
-# isn't open — deliberately not '', which would spawn a second Emacs.
-export EDITOR="emacsclient -t -a nvim"
+# What git, gh and friends open for a commit message: Neovim, in the
+# terminal you are already in. Works over SSH too.
+export EDITOR=nvim
 export VISUAL="$EDITOR"
 
-# Open files in the running Emacs; launch it if it isn't up yet.
-e() {
-  emacsclient -n -c "$@" 2>/dev/null || setsid -f emacs "$@" >/dev/null 2>&1
-}
-
-# Terminal frame — SSH, or inside tmux.
-et() {
-  emacsclient -t "$@" 2>/dev/null || emacs -nw "$@"
-}
-
-alias doomsync='doom sync && doom doctor'
-
-# Save notes: commit + push to GitHub, then copy to Drive for the iPad.
-# Same thing as SPC n p in Emacs. Nothing runs on a schedule.
-alias notes-push="$HOME/dotfiles/bin/notes-sync"
+# Open files or folders in Sublime Text (the Super+E window).
+e() { subl "$@"; }
 alias v=nvim
+
+# Save ~/Documents/notes: commit + push to GitHub. Nothing runs on a schedule.
+alias notes-push="$HOME/dotfiles/bin/notes-sync"
 
 # ─── Linux conveniences ────────────────────────────────────────────
 alias open='xdg-open'
@@ -76,10 +64,10 @@ dots() { git -C "$DOTFILES" "$@"; }
 dotsync() { git -C "$DOTFILES" add -A && git -C "$DOTFILES" commit -m "${1:-update}" && git -C "$DOTFILES" push; }
 
 # ═══════════════════════════════════════════════════════════════════
-#  Competitive programming — shell fallback. The real loop is in Emacs:
-#    SPC m b build   SPC m t run samples + diff   SPC m B sanitizers
+#  Competitive programming — shell fallback. The real loop is in Sublime:
+#    Ctrl+Enter run + test panel   Ctrl+B sanitizers   Ctrl+Shift+G judge
 #
-#  Flags mirror `+cp-fast-flags' / `+cp-debug-flags' in doom/+cp.el.
+#  Flags mirror sublime/payload/sublime-user/C++ CP.sublime-build.
 #  THEY ARE NOT LINKED — change one, change the other.
 #  Both take an optional second argument for a different input file.
 # ═══════════════════════════════════════════════════════════════════
@@ -87,7 +75,7 @@ _cp_input() { [[ -f tests/01.in ]] && echo tests/01.in || echo in.txt; }
 
 # Sanitizers, no optimisation — for finding UB and out-of-bounds.
 cprun() {
-  g++ -std=c++23 -g -O1 -DLOCAL \
+  g++ -std=c++20 -g -O1 -DLOCAL \
     -fsanitize=address,undefined -fno-sanitize-recover=all \
     -fno-omit-frame-pointer \
     -Wall -Wextra -Wshadow "$1" -o /tmp/sol \
@@ -96,7 +84,7 @@ cprun() {
 
 # What the judge actually runs.
 cpjudge() {
-  g++ -std=c++23 -O2 -Wall -Wextra -Wshadow "$1" -o /tmp/sol \
+  g++ -std=c++20 -O2 -Wall -Wextra -Wshadow "$1" -o /tmp/sol \
     && /tmp/sol < "${2:-$(_cp_input)}"
 }
 
