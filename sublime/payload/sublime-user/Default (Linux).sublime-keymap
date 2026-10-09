@@ -19,12 +19,17 @@
 
 
     // ── PANES (Origami) ────────────────────────────────────────────────────
-    // Live in every mode, insert included. Same keys as tmux and Neovim.
-    // Split / close / zoom panes: SPC w v, SPC w s, SPC w d, SPC w m.
-    { "keys": ["ctrl+h"], "command": "travel_to_pane", "args": {"direction": "left"} },
-    { "keys": ["ctrl+j"], "command": "travel_to_pane", "args": {"direction": "down"} },
-    { "keys": ["ctrl+k"], "command": "travel_to_pane", "args": {"direction": "up"} },
-    { "keys": ["ctrl+l"], "command": "travel_to_pane", "args": {"direction": "right"} },
+    // Move between panes. Live in every mode, insert included. Same keys as
+    // tmux and Neovim.
+    //
+    // These keys ONLY move. "create_new_if_necessary": false matters: Origami's
+    // default is to open a new empty pane when there is none in that
+    // direction, so one stray Ctrl+L would split the window.
+    // To split on purpose: SPC w v (right), SPC w s (down). Close: SPC w d.
+    { "keys": ["ctrl+h"], "command": "travel_to_pane", "args": {"direction": "left",  "create_new_if_necessary": false} },
+    { "keys": ["ctrl+j"], "command": "travel_to_pane", "args": {"direction": "down",  "create_new_if_necessary": false} },
+    { "keys": ["ctrl+k"], "command": "travel_to_pane", "args": {"direction": "up",    "create_new_if_necessary": false} },
+    { "keys": ["ctrl+l"], "command": "travel_to_pane", "args": {"direction": "right", "create_new_if_necessary": false} },
 
 
     // ── SAVE ───────────────────────────────────────────────────────────────
