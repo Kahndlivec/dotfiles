@@ -159,8 +159,9 @@ iPad:                    Files → Google Drive → Skripta   (read only)
 ```
 
 - **Colours** are in [`sioyek/prefs_user.config`](sioyek/prefs_user.config):
-  `d` blue definice, `v` red věta, `p` green příklad, `k` yellow key step,
-  `z` purple zkouška.
+  `d` orange definice (and whatever matters most), `v` blue věta, `p` green
+  příklad, `k` yellow key step, `z` purple zkouška. They are the GoodNotes pen
+  colours, so both apps read the same way.
 - **See one kind only:** `gh` opens the list; type `[v]` for věty, `[d]` for
   definice. `gnv` / `gNv` jump to the next / previous věta (same for d, p, k, z).
 - **Export:** `g e` writes a copy of the PDF with highlights and notes baked
