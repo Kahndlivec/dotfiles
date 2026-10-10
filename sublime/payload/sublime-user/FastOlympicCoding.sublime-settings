@@ -36,9 +36,9 @@
             // -DLOCAL matters: your template guards dbg() behind #ifdef LOCAL
             // and clangd already passes -DLOCAL. Without it here, clangd shows
             // you a live dbg() that compiles to nothing when FOC runs it.
-            "compile_cmd": "g++ -std=c++20 -O1 -g -DLOCAL -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all -Wall -Wextra -Wshadow '{source_file}' -o '{file_name}'",
+            "compile_cmd": "g++ -std=c++20 -O1 -g -DLOCAL -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all -Wall -Wextra -Wshadow '{source_file}' -o '{file_name}.out'",
 
-            "run_cmd": "./\"{file_name}\" {args} -debug",
+            "run_cmd": "./\"{file_name}.out\" {args} -debug",
 
             // -fsyntax-only: lint should not link.
             "lint_compile_cmd": "g++ -std=c++20 -fsyntax-only -DLOCAL -Wall -Wextra -Wshadow -I '{source_file_dir}' '{source_file}'"

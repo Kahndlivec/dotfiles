@@ -38,22 +38,30 @@ click its green plus. Sublime then has the solution file open, cursor inside
 `solve()`, and Ctrl+Enter already shows the samples.
 
 ```
-<repo>/codeforces/2019/A/A.cpp          your template
-<repo>/codeforces/2019/A/A.cpp:tests    the samples, as the test panel reads them
-<repo>/codeforces/2019/A/tests/01.in    the same samples as plain files
-<repo>/codeforces/2019/A/tests/01.out
-<repo>/codeforces/2019/A/in.txt         sample 1, for Ctrl+Shift+R and cprun
+<repo>/random-100/2019A/2019A.cpp          your template
+<repo>/random-100/2019A/2019A.cpp:tests    the samples, as the test panel reads them
+<repo>/random-100/2019A/tests/01.in        the same samples as plain files
+<repo>/random-100/2019A/tests/01.ans
+<repo>/random-100/2019A/in.txt             sample 1, for Ctrl+Shift+R and cprun
 ```
 
+- **Which folder** (`random-100` here): the top-level folder of the file you
+  have open in Sublime. If that file is not in the repo, the folder whose
+  `.cpp` files changed most recently. In an empty repo, the site's name.
+  To start a new set, make the folder and save any file in it first. The
+  status bar says where each problem went.
+- **The name** is the judge's code for the problem: `2019A`, `1995B1`,
+  `abc370_a`. Sites without one get the title (`weird-algorithm`).
 - It listens whenever Sublime is open; the extension needs no setting.
   `SPC k c` switches it off and on. `curl localhost:10043` says whether it is up.
 - Nothing that exists is overwritten. Clicking the plus again just reopens
   the file.
 - "Parse contest" in the extension creates every problem and leaves you on
   the first.
+- Sample answers are `.ans`, not `.out`, because every compiled binary here
+  ends in `.out` and the repo's `.gitignore` drops `*.out`.
 - The layout is one line, `"path"`, in `CpCompanion.sublime-settings`
-  (`{site}/{contest}/{problem}/{problem}.cpp`). The code is
-  `payload/sublime-user/cp_companion.py`.
+  (`{folder}/{id}/{id}.cpp`). The code is `payload/sublime-user/cp_companion.py`.
 
 ## Keys: two layers
 
@@ -144,8 +152,10 @@ Ctrl+Shift+Enter   run everything again
    before the shell sees them. Use absolute paths, or a script in `~/.cp/`.
 2. **A build key doing nothing** usually means the focused view was not a
    saved file.
-3. **Build system choice is per window.** Open the project file
+3. **Binaries end in `.out`** (`a.out`, `a_dbg.out`, `a_g.out`) and sit next to
+   the source. The installer makes sure the repo's `.gitignore` has `*.out`.
+4. **Build system choice is per window.** Open the project file
    (`cp.sublime-project` in your competitive-programming folder), then pick
    Tools → Build System → C++ CP once.
-4. **Build variant names are one word** (`judge`, `compile`, `debug-in`, …)
+5. **Build variant names are one word** (`judge`, `compile`, `debug-in`, …)
    because the leader map cannot pass a name with spaces.

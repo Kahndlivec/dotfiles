@@ -110,7 +110,7 @@
     "file_exclude_patterns":
     [
         "*.o", "*.out", "*.exe", "*_dbg", "*_g", "*.gch", "*.pch",
-        "sol", "brute", "gen"
+        "sol", "brute", "gen", ".stress_*"
     ],
 
     "binary_file_patterns":

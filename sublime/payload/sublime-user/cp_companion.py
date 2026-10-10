@@ -12,13 +12,19 @@
 #  sends to port 10043 by default. Toggle it with SPC k c, or from the palette:
 #  "CP Companion: Toggle Listener".
 #
-#  What lands on disk, for Codeforces 2019 A with the default layout:
+#  What lands on disk, for Codeforces 2019 A while you work in random-100/:
 #
-#      <root>/codeforces/2019/A/A.cpp          your template
-#      <root>/codeforces/2019/A/A.cpp:tests    the samples, as FOC reads them
-#      <root>/codeforces/2019/A/tests/01.in    the same samples as plain files
-#      <root>/codeforces/2019/A/tests/01.out
-#      <root>/codeforces/2019/A/in.txt         sample 1, for Ctrl+Shift+R
+#      <root>/random-100/2019A/2019A.cpp          your template
+#      <root>/random-100/2019A/2019A.cpp:tests    the samples, as FOC reads them
+#      <root>/random-100/2019A/tests/01.in        the same samples as plain files
+#      <root>/random-100/2019A/tests/01.ans       (.ans, because *.out is gitignored)
+#      <root>/random-100/2019A/in.txt             sample 1, for Ctrl+Shift+R
+#
+#  Which folder ("random-100")? The one you are working in:
+#    1. the top-level folder of the file you have open in Sublime, if that
+#       file is inside the repo;
+#    2. otherwise the top-level folder whose .cpp files changed most recently;
+#    3. otherwise a folder named after the site (codeforces).
 #
 #  Nothing that already exists is ever overwritten: clicking the plus twice
 #  just reopens the file.
@@ -52,8 +58,9 @@ DEFAULTS = {
     "enabled": True,
     "port": 10043,
     "root": "~/Documents/cp",
-    "path": "{site}/{contest}/{problem}/{problem}.cpp",
+    "path": "{folder}/{id}/{id}.cpp",
     "template": "",
+    "not_sets": ["algo", "notes"],
 }
 
 FALLBACK_TEMPLATE = (
@@ -100,7 +107,10 @@ def describe(data):
               otherwise the contest title as a slug, otherwise "misc"
     problem   the problem's letter or index where there is one (A, B1),
               otherwise the title as a slug
+    id        how the judge names the problem: 2019A, abc370_a; for sites
+              without such a code, the title as a slug
     name      the full title as a slug (a-max-plus-size)
+    folder    filled in by the caller: the set you are working in
     """
     url = data.get("url") or ""
     name = data.get("name") or "problem"
@@ -108,6 +118,7 @@ def describe(data):
     site = _site(url, group)
     contest = None
     problem = None
+    pid = None
 
     # Codeforces: /contest/2019/problem/A, /gym/104114/problem/B,
     # /problemset/problem/954/G, /group/x/contest/1/problem/A, and the EDU
@@ -116,12 +127,14 @@ def describe(data):
          or re.search(r"/problemset/(?:problem|gymProblem)/(\d+)/([A-Za-z0-9]+)", url))
     if m and site == "codeforces":
         contest, problem = m.group(1), m.group(2).upper()
+        pid = contest + problem
 
     # AtCoder: /contests/abc370/tasks/abc370_a
     if contest is None:
-        m = re.search(r"/contests/([A-Za-z0-9_-]+)/tasks/[A-Za-z0-9-]+_([A-Za-z0-9]+)", url)
+        m = re.search(r"/contests/([A-Za-z0-9_-]+)/tasks/([A-Za-z0-9-]+_([A-Za-z0-9]+))", url)
         if m:
-            contest, problem = m.group(1).lower(), m.group(2).upper()
+            contest, problem = m.group(1).lower(), m.group(3).upper()
+            pid = m.group(2).lower()
 
     if contest is None:
         category = group.split(" - ", 1)[1] if " - " in group else ""
@@ -129,11 +142,60 @@ def describe(data):
     if problem is None:
         problem = slug(name)
 
-    return {"site": site, "contest": contest, "problem": problem, "name": slug(name)}
+    return {"site": site, "contest": contest, "problem": problem,
+            "id": pid or slug(name), "name": slug(name), "folder": site}
 
 
-def source_path(data, root, template):
+def _top_folder(root, path):
+    """'random-100' for <root>/random-100/x/y.cpp; None if path is elsewhere."""
+    if not path:
+        return None
+    root = os.path.realpath(os.path.expanduser(root))
+    rel = os.path.relpath(os.path.realpath(path), root)
+    if rel.startswith("..") or os.path.isabs(rel) or os.sep not in rel:
+        return None
+    return rel.split(os.sep)[0]
+
+
+def _newest_set(root, skip):
+    """The top-level folder whose .cpp files were touched most recently."""
+    root = os.path.expanduser(root)
+    best, best_time = None, 0
+    try:
+        entries = sorted(os.listdir(root))
+    except OSError:
+        return None
+    for name in entries:
+        top = os.path.join(root, name)
+        if name.startswith(".") or name in skip or not os.path.isdir(top):
+            continue
+        for base, dirs, files in os.walk(top):
+            if base[len(top):].count(os.sep) >= 2:
+                dirs[:] = []
+            for f in files:
+                if f.endswith((".cpp", ".cc", ".cxx")):
+                    try:
+                        t = os.path.getmtime(os.path.join(base, f))
+                    except OSError:
+                        continue
+                    if t > best_time:
+                        best, best_time = name, t
+    return best
+
+
+def pick_folder(cfg, active_file=None):
+    """The set a new problem belongs to. None means: use the site's name."""
+    skip = set(cfg.get("not_sets") or [])
+    top = _top_folder(cfg["root"], active_file)
+    if top and top not in skip and not top.startswith("."):
+        return top
+    return _newest_set(cfg["root"], skip)
+
+
+def source_path(data, root, template, folder=None):
     names = describe(data)
+    if folder:
+        names["folder"] = folder
     try:
         rel = template.format(**names)
     except (KeyError, IndexError, ValueError):
@@ -181,7 +243,7 @@ def cursor_position(text):
 
 def create_problem(data, cfg):
     """Create the folder, solution file and tests. Returns a summary dict."""
-    src = source_path(data, cfg["root"], cfg["path"])
+    src = source_path(data, cfg["root"], cfg["path"], cfg.get("folder"))
     folder = os.path.dirname(src)
     tests_dir = os.path.join(folder, "tests")
     if not os.path.isdir(tests_dir):
@@ -193,7 +255,7 @@ def create_problem(data, cfg):
     tests = [t for t in (data.get("tests") or []) if isinstance(t, dict)][:MAX_TESTS]
     for i, t in enumerate(tests, 1):
         _write_new(os.path.join(tests_dir, "%02d.in" % i), t.get("input") or "")
-        _write_new(os.path.join(tests_dir, "%02d.out" % i), t.get("output") or "")
+        _write_new(os.path.join(tests_dir, "%02d.ans" % i), t.get("output") or "")
     if tests:
         _write_new(os.path.join(folder, "in.txt"), tests[0].get("input") or "")
         # CppFastOlympicCoding keeps its tests beside the source in
@@ -312,15 +374,21 @@ def _open_in_sublime(info):
                              sublime.ENCODED_POSITION)
         while len(_batches) > 20:
             _batches.pop(next(iter(_batches)))
-    sublime.status_message("cp: %s - %d sample%s%s" % (
+    sublime.status_message("cp: %s - %d sample%s - %s%s" % (
         info["name"], info["tests"], "" if info["tests"] == 1 else "s",
+        os.path.basename(os.path.dirname(os.path.dirname(info["src"]))) + "/" +
+        os.path.basename(os.path.dirname(info["src"])),
         "" if info["created"] else " (already existed, reopened)"))
 
 
 def _on_problem_sublime(data):
     def work():
         try:
-            info = create_problem(data, _config())
+            cfg = _config()
+            window = sublime.active_window()
+            view = window.active_view() if window else None
+            cfg["folder"] = pick_folder(cfg, view.file_name() if view else None)
+            info = create_problem(data, cfg)
         except Exception as e:   # never let one bad payload kill the listener
             sublime.status_message("cp_companion: %s" % e)
             print("cp_companion: could not create the problem: %s" % e)
@@ -379,9 +447,11 @@ def _main():
     ap.add_argument("--port", type=int, default=DEFAULTS["port"])
     ap.add_argument("--no-open", action="store_true", help="do not call subl")
     args = ap.parse_args()
-    cfg = {"root": args.root, "path": args.path, "template": args.template}
+    cfg = {"root": args.root, "path": args.path, "template": args.template,
+           "not_sets": DEFAULTS["not_sets"]}
 
     def on_problem(data):
+        cfg["folder"] = pick_folder(cfg)
         info = create_problem(data, cfg)
         print("%s  %s  (%d samples)" % ("new " if info["created"] else "seen",
                                        info["src"], info["tests"]))

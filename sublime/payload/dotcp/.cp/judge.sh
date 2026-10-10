@@ -29,7 +29,7 @@ fi
 DIR=$(dirname "$SRC")
 BASE=$(basename "$SRC")
 STEM="${BASE%.*}"
-OUT="$DIR/${STEM}_g"
+OUT="$DIR/${STEM}_g.out"
 
 if ! command -v g++ >/dev/null 2>&1; then
     echo "judge.sh: g++ not found.  sudo apt install build-essential"

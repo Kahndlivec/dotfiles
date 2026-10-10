@@ -17,14 +17,18 @@
     "root": "__CP_ROOT__",
 
     // Where a problem goes inside it. Folders are created as needed.
+    //   {folder}   the set you are working in: the top-level folder of the
+    //              file open in Sublime; failing that, the one whose .cpp
+    //              files changed most recently; failing that, the site name
+    //   {id}       the judge's code for the problem: 2019A, abc370_a; for
+    //              sites without one, the title as a slug
     //   {site}     codeforces, atcoder, cses, kattis …
-    //   {contest}  the judge's contest id (2019, abc370); for sites without
-    //              one, the contest title as a slug, or "misc"
-    //   {problem}  the letter or index (A, B1); for sites without one, the
-    //              title as a slug
-    //   {name}     the full title as a slug (a-max-plus-size)
-    // Codeforces 2019 A  →  codeforces/2019/A/A.cpp
-    "path": "{site}/{contest}/{problem}/{problem}.cpp",
+    //   {contest}  2019, abc370   {problem}  A, B1   {name}  a-max-plus-size
+    // Codeforces 2019 A, while working in random-100  →  random-100/2019A/2019A.cpp
+    "path": "{folder}/{id}/{id}.cpp",
+
+    // Top-level folders that are never treated as a problem set.
+    "not_sets": ["algo", "notes"],
 
     // The file every new solution starts from.
     "template": "__CP_ROOT__/algo/cp.cpp"

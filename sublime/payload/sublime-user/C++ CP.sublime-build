@@ -7,9 +7,12 @@
     // Everything runs in Sublime's panel except "interactive", which opens
     // Ghostty because the panel cannot accept typed input.
     //
+    // Every binary ends in .out (a.out, a_dbg.out, a_g.out), so one line in
+    // .gitignore, *.out, keeps them all out of your solutions repo.
+    //
     // Variant names are one word on purpose: the leader map in
     // .neovintageousrc can only pass a name without spaces (SPC c j → judge).
-    "shell_cmd": "g++ -std=c++20 -O1 -g -Wall -Wextra -Wshadow -Wfloat-equal -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -DLOCAL '${file}' -o '${file_path}/${file_base_name}_dbg' && '${file_path}/${file_base_name}_dbg'",
+    "shell_cmd": "g++ -std=c++20 -O1 -g -Wall -Wextra -Wshadow -Wfloat-equal -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -DLOCAL '${file}' -o '${file_path}/${file_base_name}_dbg.out' && '${file_path}/${file_base_name}_dbg.out'",
 
     "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
     "working_dir": "${file_path}",
@@ -20,22 +23,22 @@
         {
             // sanitizers, stdin from in.txt
             "name": "debug-in",
-            "shell_cmd": "g++ -std=c++20 -O1 -g -Wall -Wextra -Wshadow -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -DLOCAL '${file}' -o '${file_path}/${file_base_name}_dbg' && '${file_path}/${file_base_name}_dbg' < '${file_path}/in.txt'"
+            "shell_cmd": "g++ -std=c++20 -O1 -g -Wall -Wextra -Wshadow -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -DLOCAL '${file}' -o '${file_path}/${file_base_name}_dbg.out' && '${file_path}/${file_base_name}_dbg.out' < '${file_path}/in.txt'"
         },
         {
             // sanitizers, in a Ghostty window so you can type
             "name": "interactive",
-            "shell_cmd": "g++ -std=c++20 -O1 -g -Wall -Wextra -Wshadow -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -DLOCAL '${file}' -o '${file_path}/${file_base_name}_dbg' && bash __CP_HOME__/.cp/run-term.sh '${file_path}' './${file_base_name}_dbg'"
+            "shell_cmd": "g++ -std=c++20 -O1 -g -Wall -Wextra -Wshadow -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -DLOCAL '${file}' -o '${file_path}/${file_base_name}_dbg.out' && bash __CP_HOME__/.cp/run-term.sh '${file_path}' './${file_base_name}_dbg.out'"
         },
         {
             // -O2, timed, stdin from in.txt
             "name": "fast-in",
-            "shell_cmd": "g++ -std=c++20 -O2 -Wall -Wextra -DLOCAL '${file}' -o '${file_path}/${file_base_name}' && time '${file_path}/${file_base_name}' < '${file_path}/in.txt'"
+            "shell_cmd": "g++ -std=c++20 -O2 -Wall -Wextra -DLOCAL '${file}' -o '${file_path}/${file_base_name}.out' && time '${file_path}/${file_base_name}.out' < '${file_path}/in.txt'"
         },
         {
             // -O2, no input file
             "name": "fast",
-            "shell_cmd": "g++ -std=c++20 -O2 -Wall -Wextra -DLOCAL '${file}' -o '${file_path}/${file_base_name}' && '${file_path}/${file_base_name}'"
+            "shell_cmd": "g++ -std=c++20 -O2 -Wall -Wextra -DLOCAL '${file}' -o '${file_path}/${file_base_name}.out' && '${file_path}/${file_base_name}.out'"
         },
         {
             // -O2 with checked containers, the last look before submitting

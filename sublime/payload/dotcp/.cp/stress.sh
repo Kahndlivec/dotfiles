@@ -29,15 +29,15 @@ for f in brute.cpp gen.cpp; do
 done
 
 echo "compiling..."
-g++ -std=c++20 -O2 -o .stress_sol   "$SOL"    || exit 1
-g++ -std=c++20 -O2 -o .stress_brute brute.cpp || exit 1
-g++ -std=c++20 -O2 -o .stress_gen   gen.cpp   || exit 1
+g++ -std=c++20 -O2 -o .stress_sol.out   "$SOL"    || exit 1
+g++ -std=c++20 -O2 -o .stress_brute.out brute.cpp || exit 1
+g++ -std=c++20 -O2 -o .stress_gen.out   gen.cpp   || exit 1
 
 echo "running $N tests..."
 for i in $(seq 1 "$N"); do
-    ./.stress_gen "$i" > .stress_in.txt
-    ./.stress_sol   < .stress_in.txt > .stress_out1.txt
-    ./.stress_brute < .stress_in.txt > .stress_out2.txt
+    ./.stress_gen.out "$i" > .stress_in.txt
+    ./.stress_sol.out   < .stress_in.txt > .stress_out1.txt
+    ./.stress_brute.out < .stress_in.txt > .stress_out2.txt
     if ! diff -q .stress_out1.txt .stress_out2.txt > /dev/null; then
         echo
         echo "MISMATCH on seed $i"
@@ -51,4 +51,4 @@ for i in $(seq 1 "$N"); do
 done
 
 echo "all $N tests passed"
-rm -f .stress_sol .stress_brute .stress_gen .stress_in.txt .stress_out1.txt .stress_out2.txt
+rm -f .stress_sol.out .stress_brute.out .stress_gen.out .stress_in.txt .stress_out1.txt .stress_out2.txt

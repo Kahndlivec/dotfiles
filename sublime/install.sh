@@ -317,6 +317,21 @@ else
   ok "project + template → $DEST"
 fi
 
+# Build leftovers must not end up in your solutions repo: cpush adds
+# everything. Every binary ends in .out; the rest are named here. Lines are
+# only ever added, and only if missing.
+if [ -d "$DEST/.git" ] || [ -f "$DEST/.gitignore" ]; then
+  ADDED=""
+  for line in '*.out' '.stress_*' '*.sublime-workspace'; do
+    if ! grep -qxF -- "$line" "$DEST/.gitignore" 2>/dev/null; then
+      [ -z "$ADDED" ] && [ -s "$DEST/.gitignore" ] && [ -n "$(tail -c1 "$DEST/.gitignore")" ] && echo >> "$DEST/.gitignore"
+      [ -z "$ADDED" ] && echo "# build leftovers (added by dotfiles/sublime/install.sh)" >> "$DEST/.gitignore"
+      echo "$line" >> "$DEST/.gitignore"; ADDED="$ADDED $line"
+    fi
+  done
+  if [ -n "$ADDED" ]; then ok ".gitignore in your CP repo: added$ADDED"; fi
+fi
+
 if [ "$DEST" != "$HOME/Documents/cp" ] && [ -d "$HOME/Documents/cp" ]; then
   # shellcheck disable=SC2088  # display text
   wa "~/Documents/cp is no longer used. Move anything you want out of it, then delete it."
