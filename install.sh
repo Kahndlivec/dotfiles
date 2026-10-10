@@ -955,7 +955,8 @@ if [[ "$MODE" == all ]]; then
     4. rclone config         (new remote "gdrive", type drive), then ./install.sh drive
     5. Open Sublime Text (Super+E), wait two minutes while Package Control
        installs its packages, quit and reopen. Then Project → Open Project →
-       ~/Documents/cp/cp.sublime-project, and Tools → Build System → C++ CP
+       cp.sublime-project in your competitive-programming folder, and
+       Tools → Build System → C++ CP
     6. Brave Sync, and log in to Spotify and Telegram
     7. If this machine had the old Emacs setup: ./install.sh prune
 EOF

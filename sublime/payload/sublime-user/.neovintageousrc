@@ -245,5 +245,8 @@ nnoremap <leader>kp :ViewTester action=sync_opdebugs<CR>
 " A__Good.cpp and A__Generator.cpp beside it.
 nnoremap <leader>ks :StressManager action=make_stress<CR>
 nnoremap <leader>kS :StressManager action=stop_stress<CR>
-" SPC k f  pick a template from ~/Documents/cp/algo
+" SPC k f  pick a template from the algo/ folder of your CP repo
 nnoremap <leader>kf :OlympicFuncs action=show_funcs<CR>
+" SPC k c  Competitive Companion listener on / off (it is on by default;
+" cp_companion.py). Click the extension's green plus on a problem page.
+nnoremap <leader>kc :CpCompanionToggle<CR>

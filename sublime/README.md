@@ -25,7 +25,35 @@ change a setting for good: edit the file in `payload/`, run
 | `payload/sublime-user/` | `~/.config/sublime-text/Packages/User/` |
 | `payload/clangd/config.yaml` | `~/.config/clangd/config.yaml` |
 | `payload/dotcp/.cp/` | `~/.cp/` (judge, stress and run-in-terminal scripts) |
-| `payload/cpdir/` | `~/Documents/cp/` (project file, template library) |
+| `payload/cpdir/` | your competitive-programming folder (project file, `algo/` template library) |
+
+The competitive-programming folder is found by the installer: a folder called
+`competitive-programming` in `~/Documents` or `~`, otherwise `~/Documents/cp`.
+To name it yourself: `CP_ROOT=/path/to/repo ~/dotfiles/install.sh sublime`.
+
+## New problem from the browser
+
+Install the **Competitive Companion** browser extension. On a problem page,
+click its green plus. Sublime then has the solution file open, cursor inside
+`solve()`, and Ctrl+Enter already shows the samples.
+
+```
+<repo>/codeforces/2019/A/A.cpp          your template
+<repo>/codeforces/2019/A/A.cpp:tests    the samples, as the test panel reads them
+<repo>/codeforces/2019/A/tests/01.in    the same samples as plain files
+<repo>/codeforces/2019/A/tests/01.out
+<repo>/codeforces/2019/A/in.txt         sample 1, for Ctrl+Shift+R and cprun
+```
+
+- It listens whenever Sublime is open; the extension needs no setting.
+  `SPC k c` switches it off and on. `curl localhost:10043` says whether it is up.
+- Nothing that exists is overwritten. Clicking the plus again just reopens
+  the file.
+- "Parse contest" in the extension creates every problem and leaves you on
+  the first.
+- The layout is one line, `"path"`, in `CpCompanion.sublime-settings`
+  (`{site}/{contest}/{problem}/{problem}.cpp`). The code is
+  `payload/sublime-user/cp_companion.py`.
 
 ## Keys: two layers
 
@@ -51,6 +79,7 @@ q  quit      qq quit   qQ quit, discard
 h  help      hr reload the config
 k  competitive (Sublime only)
              kp test panel   ks / kS FOC stress start / stop   kf template library
+             kc Competitive Companion listener on / off
 ```
 
 Also on the leader: `SPC d{motion}` deletes without touching the clipboard,
@@ -116,7 +145,7 @@ Ctrl+Shift+Enter   run everything again
 2. **A build key doing nothing** usually means the focused view was not a
    saved file.
 3. **Build system choice is per window.** Open the project file
-   (`~/Documents/cp/cp.sublime-project`), then pick Tools → Build System →
-   C++ CP once.
+   (`cp.sublime-project` in your competitive-programming folder), then pick
+   Tools → Build System → C++ CP once.
 4. **Build variant names are one word** (`judge`, `compile`, `debug-in`, …)
    because the leader map cannot pass a name with spaces.

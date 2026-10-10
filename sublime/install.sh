@@ -21,7 +21,23 @@ PL="$HERE/payload"
 ST="$HOME/.config/sublime-text"
 U="$ST/Packages/User"
 IP="$ST/Installed Packages"
-DEST="$HOME/Documents/cp"
+
+# Where your competitive-programming repo lives. First match wins:
+#   1. CP_ROOT=/some/path bash install.sh      (say so yourself)
+#   2. a folder called competitive-programming in ~/Documents or ~
+#   3. one anywhere up to three levels below your home folder
+#   4. ~/Documents/cp                          (created if nothing else exists)
+find_cp_root() {
+  local d
+  if [ -n "${CP_ROOT:-}" ]; then printf '%s' "${CP_ROOT%/}"; return; fi
+  for d in "$HOME/Documents/competitive-programming" "$HOME/competitive-programming"; do
+    [ -d "$d" ] && { printf '%s' "$d"; return; }
+  done
+  d="$(find "$HOME" -maxdepth 3 -type d -name competitive-programming -not -path '*/.*' 2>/dev/null | sort | head -1)"
+  [ -n "$d" ] && { printf '%s' "$d"; return; }
+  printf '%s' "$HOME/Documents/cp"
+}
+DEST="$(find_cp_root)"
 CLANGD="$HOME/.config/clangd/config.yaml"
 STAMP=$(date +%Y%m%d-%H%M%S)
 VAULT="$HOME/Documents/cp-backups/pre-install-$STAMP"
@@ -59,7 +75,7 @@ def load(path):
     return json.loads(s)
 
 files = []
-for pat in ('*.sublime-keymap', '*.sublime-settings', '*.sublime-build', '*.sublime-macro'):
+for pat in ('*.sublime-keymap', '*.sublime-settings', '*.sublime-build', '*.sublime-macro', '*.sublime-commands'):
     files += glob.glob(os.path.join(U, pat))
 files += glob.glob(os.path.join(DEST, '*.sublime-project'))
 data = {}
@@ -101,12 +117,21 @@ if len(stds) == 3 and len(flat) == 1:
 elif stds:
     print('  %s✗%s the C++ standard differs between files: %s' % (R, Z, {k: sorted(v) for k, v in stds.items()})); bad += 1
 
+plugin = os.path.join(U, 'cp_companion.py')
+if os.path.isfile(plugin):
+    try:
+        compile(open(plugin, encoding='utf-8').read(), plugin, 'exec')
+        print('  %s✓%s cp_companion.py' % (G, Z))
+    except SyntaxError as e:
+        print('  %s✗%s cp_companion.py: %s' % (R, Z, e)); bad += 1
+
 left = []
 for root in (U, os.path.expanduser('~/.cp')):
     for p in glob.glob(os.path.join(root, '*')):
         if os.path.isfile(p):
             try:
-                if '__CP_HOME__' in open(p, encoding='utf-8', errors='replace').read():
+                text = open(p, encoding='utf-8', errors='replace').read()
+                if '__CP_HOME__' in text or '__CP_ROOT__' in text:
                     left.append(p)
             except OSError:
                 pass
@@ -156,11 +181,12 @@ if [ "$MODE" = check ]; then
     # Installed copies that differ from the repo: either you edited them in
     # Sublime, or the repo moved on and this machine has not re-run install.
     HOME_ESC="$(printf '%s' "$HOME" | sed 's/[&|\\]/\\&/g')"
+    ROOT_ESC="$(printf '%s' "$DEST" | sed 's/[&|\\]/\\&/g')"
     DRIFT=""
     while IFS= read -r -d '' f; do
       n="$(basename "$f")"
       [ "$n" = "Package Control.sublime-settings" ] && continue   # Package Control rewrites it
-      sed "s|__CP_HOME__|$HOME_ESC|g" "$f" | cmp -s - "$U/$n" || DRIFT="$DRIFT $n"
+      sed -e "s|__CP_ROOT__|$ROOT_ESC|g" -e "s|__CP_HOME__|$HOME_ESC|g" "$f" | cmp -s - "$U/$n" || DRIFT="$DRIFT $n"
     done < <(find "$PL/sublime-user" -maxdepth 1 -type f -print0)
     if [ -n "$DRIFT" ]; then wa "differ from the repo:$DRIFT  (re-run install to reset them)"; else ok "installed settings match the repo"; fi
   else
@@ -235,14 +261,17 @@ else
 fi
 
 hdr "4  Settings"
+ok "competitive-programming folder: $DEST"
 # put <src> <dst>: write src to dst with __CP_HOME__ replaced by your home
+# folder and __CP_ROOT__ by your competitive-programming folder.
 # folder. If dst exists with different content, it is backed up first.
 HOME_ESC="$(printf '%s' "$HOME" | sed 's/[&|\\]/\\&/g')"
+ROOT_ESC="$(printf '%s' "$DEST" | sed 's/[&|\\]/\\&/g')"
 BACKED=0; WROTE=0; SAME=0
 put() {
   local src="$1" dst="$2" tmp
   tmp="$(mktemp)"
-  sed "s|__CP_HOME__|$HOME_ESC|g" "$src" > "$tmp"
+  sed -e "s|__CP_ROOT__|$ROOT_ESC|g" -e "s|__CP_HOME__|$HOME_ESC|g" "$src" > "$tmp"
   if [ -f "$dst" ] && cmp -s "$tmp" "$dst"; then
     rm -f "$tmp"; SAME=$((SAME + 1)); return 0
   fi
@@ -288,6 +317,10 @@ else
   ok "project + template → $DEST"
 fi
 
+if [ "$DEST" != "$HOME/Documents/cp" ] && [ -d "$HOME/Documents/cp" ]; then
+  # shellcheck disable=SC2088  # display text
+  wa "~/Documents/cp is no longer used. Move anything you want out of it, then delete it."
+fi
 echo "  $WROTE files written, $SAME already up to date"
 if [ "$BACKED" -gt 0 ]; then
   wa "$BACKED files you already had were replaced. Originals: $VAULT"
@@ -310,10 +343,13 @@ cat <<EOT
        missing — that is expected. Package Control installs your 11 packages
        in the background; watch the status bar at the bottom. Give it two
        minutes, then quit Sublime and open it again.  (Super+E opens it.)
-    2. Project → Open Project… → ~/Documents/cp/cp.sublime-project
+    2. Project → Open Project… → $DEST/cp.sublime-project
     3. Tools → Build System → C++ CP
     4. New file, save it as a.cpp, type  cp  then Tab — the template appears.
     5. Ctrl+Enter — it compiles and the test panel opens on the right.
+    6. In the browser, add the Competitive Companion extension. Clicking its
+       green plus on a problem creates the folder in $DEST
+       and opens the file here.
 
   Check again any time: bash "$HERE/install.sh" check
 EOT

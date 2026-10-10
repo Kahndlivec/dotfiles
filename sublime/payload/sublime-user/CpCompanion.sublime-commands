@@ -1,0 +1,5 @@
+[
+    { "caption": "CP Companion: Toggle Listener", "command": "cp_companion_toggle" },
+    { "caption": "CP Companion: Settings", "command": "open_file",
+      "args": {"file": "${packages}/User/CpCompanion.sublime-settings"} }
+]

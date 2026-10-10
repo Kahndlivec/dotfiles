@@ -1,0 +1,31 @@
+{
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Competitive Companion listener (cp_companion.py).
+    //  Click the extension's green plus on a problem page: the problem folder
+    //  is created here and the solution file opens in Sublime.
+    //  Changes apply to the next problem you send; no restart needed.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    // Listen whenever Sublime is open. SPC k c toggles it for the session.
+    "enabled": true,
+
+    // 10043 is one of the ports the extension sends to out of the box, so
+    // the extension needs no setting.
+    "port": 10043,
+
+    // Your competitive-programming repo.
+    "root": "__CP_ROOT__",
+
+    // Where a problem goes inside it. Folders are created as needed.
+    //   {site}     codeforces, atcoder, cses, kattis …
+    //   {contest}  the judge's contest id (2019, abc370); for sites without
+    //              one, the contest title as a slug, or "misc"
+    //   {problem}  the letter or index (A, B1); for sites without one, the
+    //              title as a slug
+    //   {name}     the full title as a slug (a-max-plus-size)
+    // Codeforces 2019 A  →  codeforces/2019/A/A.cpp
+    "path": "{site}/{contest}/{problem}/{problem}.cpp",
+
+    // The file every new solution starts from.
+    "template": "__CP_ROOT__/algo/cp.cpp"
+}

@@ -12,10 +12,10 @@
     // Every <name>.cpp in this folder becomes <name>+Tab. It ships as null,
     // which makes Tab fall through to a plain autocomplete. Relative paths
     // resolve against the package dir, so this is absolute.
-    "algorithms_base": "__CP_HOME__/Documents/cp/algo",
+    "algorithms_base": "__CP_ROOT__/algo",
 
     // Where "FastOlympicCoding: Setup Contest" drops folders.
-    "contests_base": "__CP_HOME__/Documents/cp",
+    "contests_base": "__CP_ROOT__",
 
 
     // ── Compiler ───────────────────────────────────────────────────────────
