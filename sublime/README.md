@@ -45,11 +45,15 @@ click its green plus. Sublime then has the solution file open, cursor inside
 <repo>/random-100/2019A/in.txt             sample 1, for Ctrl+Shift+R and cprun
 ```
 
-- **Which folder** (`random-100` here): the top-level folder of the file you
-  have open in Sublime. If that file is not in the repo, the folder whose
-  `.cpp` files changed most recently. In an empty repo, the site's name.
-  To start a new set, make the folder and save any file in it first. The
-  status bar says where each problem went.
+- **Which folder** (`random-100` here), in this order:
+  1. a top-level folder that is still empty, because you just made it;
+  2. the top-level folder of the file you have open in Sublime;
+  3. the folder whose `.cpp` files changed most recently;
+  4. in a repo with no solutions yet, the site's name.
+
+  To start a new set: `mkdir` the folder, click the plus. To go back to an
+  older set: open any file from it, then click the plus. The status bar says
+  where each problem went.
 - **The name** is the judge's code for the problem: `2019A`, `1995B1`,
   `abc370_a`. Sites without one get the title (`weird-algorithm`).
 - It listens whenever Sublime is open; the extension needs no setting.

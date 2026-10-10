@@ -20,11 +20,15 @@
 #      <root>/random-100/2019A/tests/01.ans       (.ans, because *.out is gitignored)
 #      <root>/random-100/2019A/in.txt             sample 1, for Ctrl+Shift+R
 #
-#  Which folder ("random-100")? The one you are working in:
-#    1. the top-level folder of the file you have open in Sublime, if that
+#  Which folder ("random-100")? In this order:
+#    1. a top-level folder that is still empty: you just made it, so it is
+#       waiting for problems;
+#    2. the top-level folder of the file you have open in Sublime, if that
 #       file is inside the repo;
-#    2. otherwise the top-level folder whose .cpp files changed most recently;
-#    3. otherwise a folder named after the site (codeforces).
+#    3. otherwise the top-level folder whose .cpp files changed most recently;
+#    4. otherwise a folder named after the site (codeforces).
+#  So: to start a new set, make the folder and click the plus. The problem
+#  opens from there, which makes rule 2 keep the following ones there too.
 #
 #  Nothing that already exists is ever overwritten: clicking the plus twice
 #  just reopens the file.
@@ -183,9 +187,35 @@ def _newest_set(root, skip):
     return best
 
 
+def _empty_set(root, skip):
+    """A top-level folder with no files in it at all; the newest if several."""
+    root = os.path.expanduser(root)
+    best, best_time = None, 0
+    try:
+        entries = sorted(os.listdir(root))
+    except OSError:
+        return None
+    for name in entries:
+        top = os.path.join(root, name)
+        if name.startswith(".") or name in skip or not os.path.isdir(top):
+            continue
+        if any(files for _, _, files in os.walk(top)):
+            continue
+        try:
+            t = os.path.getmtime(top)
+        except OSError:
+            continue
+        if t >= best_time:
+            best, best_time = name, t
+    return best
+
+
 def pick_folder(cfg, active_file=None):
     """The set a new problem belongs to. None means: use the site's name."""
     skip = set(cfg.get("not_sets") or [])
+    fresh = _empty_set(cfg["root"], skip)
+    if fresh:
+        return fresh
     top = _top_folder(cfg["root"], active_file)
     if top and top not in skip and not top.startswith("."):
         return top

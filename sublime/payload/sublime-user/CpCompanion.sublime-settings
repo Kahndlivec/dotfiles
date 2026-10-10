@@ -17,9 +17,10 @@
     "root": "__CP_ROOT__",
 
     // Where a problem goes inside it. Folders are created as needed.
-    //   {folder}   the set you are working in: the top-level folder of the
-    //              file open in Sublime; failing that, the one whose .cpp
-    //              files changed most recently; failing that, the site name
+    //   {folder}   the set you are working in. In order: a top-level
+    //              folder that is still empty (you just made it); the
+    //              top-level folder of the file open in Sublime; the one
+    //              whose .cpp files changed most recently; the site name
     //   {id}       the judge's code for the problem: 2019A, abc370_a; for
     //              sites without one, the title as a slug
     //   {site}     codeforces, atcoder, cses, kattis …
