@@ -430,9 +430,10 @@ else
     -- an nvim split into a tmux pane with no prefix. Mapping them here would
     -- stop movement dead at the edge of the nvim window.
 
-    -- Line start / end in insert mode.
+    -- Shell keys in insert mode: line start / end, one character right.
     map("i", "<C-a>", "<C-o>^", { desc = "Line start" })
     map("i", "<C-e>", "<C-o>$", { desc = "Line end" })
+    map("i", "<C-f>", "<Right>", { desc = "One character right" })
 
     -- ── SPC f — file ───────────────────────────────────────────────────────
     map("n", "<leader>fs", "<cmd>write<CR>", { desc = "Save" })

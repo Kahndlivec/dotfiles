@@ -131,6 +131,10 @@ Ctrl+Shift+Enter   run everything again
 
 - **Copy and paste.** `y`, `d` and `p` use the system clipboard. Ctrl+V pastes
   in insert mode. In normal mode Ctrl+C and Ctrl+V are Vim's.
+- **Shell keys in insert mode.** Ctrl+A line start, Ctrl+E line end, Ctrl+F
+  one character right (to step over a closing bracket). In normal mode they
+  keep their Vim meanings (Ctrl+F is page down). Same in VS Code and Neovim.
+  Find is `/`, or `SPC s p` across the project.
 - **Ctrl+B builds**, so Vim's page-up is gone; use Ctrl+U.
 - **Stock Sublime shortcuts that start with Ctrl+K are gone**, shadowed by
   "pane up". They are all in the palette.

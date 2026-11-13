@@ -140,12 +140,18 @@
     { "keys": ["ctrl+shift+]"], "command": "next_view" },
 
 
-    // ── LINE START / END IN INSERT MODE ────────────────────────────────────
-    // Insert-mode only, so NeoVintageous keeps normal-mode Ctrl+A (increment)
-    // and Ctrl+E (scroll). Matches zsh/readline.
+    // ── SHELL KEYS IN INSERT MODE ──────────────────────────────────────────
+    // Ctrl+A line start, Ctrl+E line end, Ctrl+F one character right, as in
+    // zsh/readline. Handy for stepping over a closing bracket or quote.
+    // Insert-mode only, so NeoVintageous keeps normal-mode Ctrl+A (increment),
+    // Ctrl+E (scroll) and Ctrl+F (page down). Without the Ctrl+F line, insert
+    // mode fell through to Sublime's own Ctrl+F and opened the find panel.
+    // Ctrl+B (one character left in the shell) stays build.
     { "keys": ["ctrl+a"], "command": "move_to", "args": {"to": "bol", "extend": false},
       "context": [{"key": "setting.command_mode", "operator": "equal", "operand": false}] },
     { "keys": ["ctrl+e"], "command": "move_to", "args": {"to": "eol", "extend": false},
+      "context": [{"key": "setting.command_mode", "operator": "equal", "operand": false}] },
+    { "keys": ["ctrl+f"], "command": "move", "args": {"by": "characters", "forward": true},
       "context": [{"key": "setting.command_mode", "operator": "equal", "operand": false}] },
 
 
