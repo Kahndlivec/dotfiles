@@ -41,8 +41,8 @@ ln -s ~/Documents/dotfiles ~/dotfiles         # everything refers to ~/dotfiles
 ```
 
 Run it from a terminal inside GNOME, as yourself. It asks for sudo once, asks
-who uses the machine, and is safe to re-run any time. Budget 45–60 minutes,
-most of it TeX Live.
+who uses the machine and which GNOME settings to change (Enter changes none),
+and is safe to re-run any time. Budget 45–60 minutes, most of it TeX Live.
 
 **Then, once:** log out and back in, `gh ssh-key add ~/.ssh/id_ed25519.pub`,
 `sudo tailscale up`, `rclone config` + `./install.sh drive`, open Sublime Text
@@ -81,7 +81,7 @@ cd ~/dotfiles && git pull
 | `./install.sh` | everything, idempotent |
 | `links` | re-link configs only |
 | `sublime` | Sublime Text, Package Control and its settings |
-| `gnome` | re-apply keys, dock and desktop settings |
+| `gnome` | asks which GNOME parts this machine takes (`keys`, `dock`, `look`) and applies them |
 | `drive` | mount Google Drive, create `Skripta` |
 | `notes` | put `~/Documents/notes` in git + a private GitHub repo |
 | `check` | full health report, changes nothing |
@@ -102,11 +102,29 @@ App keys are **run-or-raise**: jump to the app if it's open, start it if not.
 | `Super+M` | Spotify | `Super+N` | notifications |
 | `Super+F` | Files | `Super` | search, launch anything |
 
+The app keys come with the `dock` part of the GNOME settings and the window
+keys with `keys`; see [Dock and shortcuts](#dock-and-shortcuts).
+
 Inside the editors: [`sublime/README.md`](sublime/README.md) lists the leader
 map and the Ctrl keys. Neovim and VS Code use the same leader map, from
 `nvim/init.lua`.
 
 ## Dock and shortcuts
+
+The GNOME settings come in three parts, and each machine picks its own when
+the installer asks:
+
+| Part | Changes |
+|---|---|
+| `keys` | `Super+1..4` workspaces, `Super+Q`, `Alt/Super+Tab`, key repeat, Caps→Ctrl, flat mouse |
+| `dock` | dock icon order and the app keys below, dock at the bottom, auto-hidden. **Replaces the dock you have** |
+| `look` | dark mode, JetBrains Mono, battery %, no hot corners |
+
+Type any of them, `all` or `none`; Enter keeps this machine's last answer (the
+first time, that is `none`). The answer is saved in
+`~/.config/dotfiles/gnome-parts`, not in the repo, so one machine can keep a
+dock you arranged by hand while the other follows this file. `./install.sh
+check` only checks the parts the machine took.
 
 One file decides both the dock order and the app keys:
 [`gnome/shortcuts.conf`](gnome/shortcuts.conf). One line per app:
@@ -134,11 +152,12 @@ Then apply and save it:
 
 ```bash
 e ~/dotfiles/gnome/shortcuts.conf     # edit
-~/dotfiles/install.sh gnome           # apply
+~/dotfiles/install.sh gnome           # apply; dock must be among the parts
 dotsync "dock: …"                     # commit + push, so the other machine gets it
 ```
 
 On the other machine: `git -C ~/dotfiles pull && ~/dotfiles/install.sh gnome`.
+If that machine left out `dock`, its dock stays as it is.
 
 Don't drag the listed icons around in the dock itself: GNOME ties each key to
 a dock *position*, so dragging shifts every key after it. If that happens, run
@@ -146,8 +165,8 @@ a dock *position*, so dragging shifts every key after it. If that happens, run
 end. At most nine apps can have a key.
 
 Workspace and window keys (`Super+1..4`, `Super+Q`, …), key repeat and the
-rest of the desktop settings live in [`gnome/settings.sh`](gnome/settings.sh).
-Edit that file and run `./install.sh gnome` the same way.
+rest of the desktop settings live in [`gnome/settings.sh`](gnome/settings.sh),
+one function per part. Edit that file and run `./install.sh gnome` the same way.
 
 ## Skripta → iPad
 
@@ -189,7 +208,7 @@ iPad:                    Files → Google Drive → Skripta   (read only)
 | `install.sh` | the whole setup |
 | `packages/` | apt, npm, pipx, VS Code extensions, launchers to hide, packages to remove |
 | `gnome/shortcuts.conf` | app keys and dock order |
-| `gnome/settings.sh` | workspaces, window keys, key repeat, dock, dark mode |
+| `gnome/settings.sh` | the three GNOME parts: keys, dock, look |
 | `sublime/` | Sublime Text: `install.sh` copies `payload/` into place — see its README |
 | `sioyek/` | `~/.config/sioyek` — highlight colours, keys, export |
 | `nvim/` | `~/.config/nvim` (also drives the vim layer in VS Code) |
@@ -226,7 +245,7 @@ Ghostty's config, Sublime's settings and build, the GNOME keys against
 
 | Symptom | Fix |
 |---|---|
-| Shortcuts open the wrong app | `./install.sh gnome` (the dock order moved) |
+| Shortcuts open the wrong app | `./install.sh gnome` with `dock` among the parts (the dock order moved) |
 | A Sublime key or setting is off | `./install.sh sublime` (resets its settings to the repo's) |
 | Sioyek colours or keys do nothing | a non-ASCII character in `sioyek/*.config`; `./install.sh check` names the line |
 | Plain shell prompt, missing commands | the repo folder moved — `./install.sh links` from its new place |

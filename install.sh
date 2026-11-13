@@ -15,7 +15,7 @@
 #      ./install.sh              everything
 #      ./install.sh links        only re-link configs
 #      ./install.sh sublime      only Sublime Text and its settings
-#      ./install.sh gnome        only GNOME keybindings, dock and settings
+#      ./install.sh gnome        only GNOME: asks which parts (keys, dock, look)
 #      ./install.sh drive        only (re)enable the Google Drive mount
 #      ./install.sh check        report what's installed, change nothing
 #      ./install.sh audit        find leftovers from older setups, change nothing
@@ -580,10 +580,52 @@ install_notes() {
 # ═══════════════════════════════════════════════════════════════════════════
 #  7. GNOME
 # ═══════════════════════════════════════════════════════════════════════════
+# GNOME settings come in three parts (see gnome/settings.sh). Each machine
+# picks its own, so one machine can keep a dock arranged by hand. The answer
+# is saved per machine, outside the repo; Enter at the prompt keeps it.
+GNOME_CHOICE="$HOME/.config/dotfiles/gnome-parts"
+GNOME_PARTS=""
+gnome_parts() { [[ -f "$GNOME_CHOICE" ]] && cat "$GNOME_CHOICE"; }
+
+choose_gnome() {
+  local saved ans w valid out=""
+  saved="$(gnome_parts)"; saved="${saved:-none}"
+  if [[ -t 0 ]]; then
+    echo "  Which GNOME settings should this machine take?"
+    echo "    keys  Super+1..4 workspaces, Super+Q, Alt/Super+Tab, key repeat, Caps→Ctrl, flat mouse"
+    echo "    dock  dock icon order + app keys (Super+E/T/B/…) from gnome/shortcuts.conf,"
+    echo "          dock at the bottom, auto-hidden. REPLACES the dock layout you have now"
+    echo "    look  dark mode, JetBrains Mono, battery %, no hot corners"
+    while true; do
+      read -rp "  Type any of: keys dock look — or all / none [$saved]: " ans
+      ans="${ans:-$saved}"
+      valid=1
+      for w in $ans; do [[ "$w" =~ ^(keys|dock|look|all|none)$ ]] || valid=0; done
+      ((valid)) && break
+      warn "only keys, dock, look, all or none"
+    done
+  else
+    ans="$saved"   # no terminal to ask: last answer, or nothing at all
+  fi
+  [[ " $ans " == *" all "* ]] && ans="keys dock look"
+  for w in keys dock look; do
+    [[ " $ans " == *" $w "* ]] && out+="${out:+ }$w"
+  done
+  GNOME_PARTS="$out"
+  mkdir -p "$(dirname "$GNOME_CHOICE")"
+  printf '%s\n' "${GNOME_PARTS:-none}" >"$GNOME_CHOICE"
+}
+
 install_gnome() {
   hdr "7  GNOME keybindings and settings"
   hide_launchers
-  bash "$D/gnome/settings.sh"
+  choose_gnome
+  if [[ -z "$GNOME_PARTS" ]]; then
+    sk "GNOME keys, dock and look left as they are (change: ./install.sh gnome)"
+    return
+  fi
+  # shellcheck disable=SC2086  # split on purpose: one argument per part
+  bash "$D/gnome/settings.sh" $GNOME_PARTS
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -592,7 +634,7 @@ install_gnome() {
 check() {
   hdr "Check"
   export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
-  local c nv
+  local c nv gp
 
   echo "  ── programs"
   for c in zsh tmux git gh rg fd g++ gdb clangd cmake subl nvim code brave-browser \
@@ -675,15 +717,23 @@ check() {
     && ok "GNOME session PATH has ~/.local/bin" || fail "GNOME session PATH lacks ~/.local/bin (log out and in)"
   [[ "${XDG_SESSION_TYPE:-}" == wayland ]] && ok "Wayland session" || warn "session type: ${XDG_SESSION_TYPE:-unknown}"
 
-  echo "  ── GNOME keys (live, compared with gnome/shortcuts.conf)"
-  if have gsettings && [[ "${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]]; then
-    bash "$D/gnome/settings.sh" verify \
-      || fail "app keys don't match gnome/shortcuts.conf (fix: ./install.sh gnome)"
-    [[ "$(gsettings get org.gnome.desktop.wm.keybindings switch-to-workspace-1)" == "['<Super>1']" ]] \
-      && ok "Super+1..4 workspaces" || fail "workspace keys not set"
-    [[ "$(gsettings get org.gnome.mutter dynamic-workspaces)" == false ]] && ok "4 fixed workspaces" || fail "workspaces still dynamic"
-  else
+  gp="$(gnome_parts)"
+  echo "  ── GNOME (this machine takes: ${gp:-not chosen yet})"
+  gp=" $gp "
+  if ! have gsettings || [[ "${XDG_CURRENT_DESKTOP:-}" != *GNOME* ]]; then
     warn "not in GNOME — run check from a terminal inside GNOME to see keys"
+  elif [[ "$gp" != *" keys "* && "$gp" != *" dock "* ]]; then
+    sk "keys and dock are left as you set them on this machine (change: ./install.sh gnome)"
+  else
+    if [[ "$gp" == *" dock "* ]]; then
+      bash "$D/gnome/settings.sh" verify \
+        || fail "app keys don't match gnome/shortcuts.conf (fix: ./install.sh gnome)"
+    fi
+    if [[ "$gp" == *" keys "* ]]; then
+      [[ "$(gsettings get org.gnome.desktop.wm.keybindings switch-to-workspace-1)" == "['<Super>1']" ]] \
+        && ok "Super+1..4 workspaces" || fail "workspace keys not set"
+      [[ "$(gsettings get org.gnome.mutter dynamic-workspaces)" == false ]] && ok "4 fixed workspaces" || fail "workspaces still dynamic"
+    fi
   fi
 
   echo "  ── services and accounts"
